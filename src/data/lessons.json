@@ -1,0 +1,38 @@
+
+[
+  {
+    "id": 1,
+    "titleKey": "algebraLesson",
+    "date": "Monday, 10:00 AM",
+    "grade": "9th Grade",
+    "subject": "Math"
+  },
+  {
+    "id": 2,
+    "titleKey": "photosynthesisLesson",
+    "date": "Tuesday, 11:30 AM",
+    "grade": "7th Grade",
+    "subject": "Science"
+  },
+  {
+    "id": 3,
+    "titleKey": "revolutionLesson",
+    "date": "Wednesday, 9:00 AM",
+    "grade": "11th Grade",
+    "subject": "History"
+  },
+  {
+    "id": 4,
+    "titleKey": "poetryLesson",
+    "date": "Friday, 1:00 PM",
+    "grade": "10th Grade",
+    "subject": "English"
+  },
+  {
+    "id": 5,
+    "titleKey": "geometryLesson",
+    "date": "Monday, 9:00 AM",
+    "grade": "8th Grade",
+    "subject": "Math"
+  }
+]

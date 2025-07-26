@@ -1,0 +1,35 @@
+
+[
+    {
+        "grade": "7th Grade",
+        "subjects": ["Science", "Math"]
+    },
+    {
+        "grade": "8th Grade",
+        "subjects": ["Math", "Science"]
+    },
+    {
+        "grade": "9th Grade",
+        "subjects": ["Math", "English"]
+    },
+    {
+        "grade": "10th Grade",
+        "subjects": ["English", "History"]
+    },
+    {
+        "grade": "11th Grade",
+        "subjects": ["History", "Math"]
+    },
+    {
+        "grade": "12th Grade",
+        "subjects": ["Physics", "Literature"]
+    },
+    {
+        "grade": "Kindergarten",
+        "subjects": ["Basics", "Playtime"]
+    },
+    {
+        "grade": "University",
+        "subjects": ["Computer Science", "Philosophy"]
+    }
+]

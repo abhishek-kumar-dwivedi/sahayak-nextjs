@@ -1,0 +1,30 @@
+
+[
+  {
+    "id": 101,
+    "title": "Introduction to Algebra",
+    "description": "Covering variables and expressions.",
+    "date": "2024-07-26",
+    "period": 1,
+    "grade": "9th Grade",
+    "subject": "Math"
+  },
+  {
+    "id": 102,
+    "title": "Lab: Photosynthesis",
+    "description": "Observing chloroplasts under a microscope.",
+    "date": "2024-07-26",
+    "period": 3,
+    "grade": "7th Grade",
+    "subject": "Science"
+  },
+  {
+    "id": 103,
+    "title": "Reading: Shakespeare's Sonnets",
+    "description": "Analyzing sonnets 18 and 130.",
+    "date": "2024-07-26",
+    "period": 4,
+    "grade": "10th Grade",
+    "subject": "English"
+  }
+]

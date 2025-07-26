@@ -1,0 +1,48 @@
+
+[
+  {
+    "id": 1,
+    "title": "Discuss Chapter 4: The Cell",
+    "description": "Prepare slides for cell division.",
+    "date": "2024-07-29",
+    "period": 3,
+    "grade": "7th Grade",
+    "subject": "Science"
+  },
+  {
+    "id": 2,
+    "title": "Final Project Presentations",
+    "description": "Students present their history projects.",
+    "date": "2024-07-31",
+    "period": 5,
+    "grade": "11th Grade",
+    "subject": "History"
+  },
+  {
+    "id": 3,
+    "title": "Quiz on Algebraic Equations",
+    "description": "Covering chapters 1-3.",
+    "date": "2024-08-01",
+    "period": 2,
+    "grade": "9th Grade",
+    "subject": "Math"
+  },
+  {
+    "id": 4,
+    "title": "Reading: To Kill a Mockingbird",
+    "description": "Discuss first 5 chapters.",
+    "date": "2024-08-01",
+    "period": 4,
+    "grade": "10th Grade",
+    "subject": "English"
+  },
+  {
+    "id": 1753548017209,
+    "title": "Introduction to Photosynthesis",
+    "description": "Scheduled from Content Generator: lesson plan - Students will be able to define photosynthesis and identify its key components (sunlight, water, carbon dioxide, chlorophyll).",
+    "date": "2025-07-26",
+    "period": 1,
+    "grade": "7th Grade",
+    "subject": "Science"
+  }
+]
