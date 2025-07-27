@@ -232,11 +232,17 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
 
 export function ManageGradesDialog({ children }: { children: React.ReactNode }) {
   const { grades, addGrade, removeGrade } = useGrade();
-  const { subjectsByGrade, addSubject } = useSubject();
+  const { subjectsByGrade, addSubject, setSelectedSubjectByGrade } = useSubject();
   const [newGrade, setNewGrade] = useState('');
   const [newSubject, setNewSubject] = useState('');
   const [gradeAdded, setGradeAdded] = useState('');
   const t = useTranslations();
+  
+  const resetState = () => {
+    setNewGrade('');
+    setNewSubject('');
+    setGradeAdded('');
+  };
 
   const handleAddGrade = () => {
     if (newGrade.trim() && !grades.includes(newGrade.trim())) {
@@ -252,11 +258,18 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
     }
   };
   
+  const handleDone = () => {
+      if (gradeAdded && subjectsForAddedGrade.length > 0) {
+        setSelectedSubjectByGrade(gradeAdded, subjectsForAddedGrade[0]);
+      }
+      resetState();
+  };
+
   const subjectsForAddedGrade = gradeAdded ? subjectsByGrade[gradeAdded] || [] : [];
-  const isDoneButtonDisabled = !gradeAdded || subjectsForAddedGrade.length === 0;
+  const isDoneButtonDisabled = gradeAdded && subjectsForAddedGrade.length === 0;
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => !open && resetState()}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
@@ -327,7 +340,7 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={isDoneButtonDisabled}>{t('done')}</Button>
+            <Button variant="outline" disabled={isDoneButtonDisabled} onClick={handleDone}>{t('done')}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
