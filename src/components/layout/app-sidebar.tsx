@@ -230,7 +230,7 @@ function ManageSubjectsDialog({ grade, children }: { grade: string, children: Re
   );
 }
 
-function ManageGradesDialog({ children }: { children: React.ReactNode }) {
+export function ManageGradesDialog({ children }: { children: React.ReactNode }) {
   const { grades, addGrade, removeGrade } = useGrade();
   const [newGrade, setNewGrade] = useState('');
   const t = useTranslations();
