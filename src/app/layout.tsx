@@ -22,7 +22,7 @@ const lato = Lato({
 
 
 export const metadata: Metadata = {
-  title: 'TutorAlly',
+  title: 'Sahayak',
   description: 'Your AI-powered teaching companion.',
 };
 

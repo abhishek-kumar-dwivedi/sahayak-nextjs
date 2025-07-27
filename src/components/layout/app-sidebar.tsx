@@ -175,7 +175,7 @@ export function AppSidebarContainer({ children }: { children: React.ReactNode })
     );
 };
 
-function ManageSubjectsDialog({ grade, children }: { grade: string, children: React.ReactNode }) {
+export function ManageSubjectsDialog({ grade, children }: { grade: string, children: React.ReactNode }) {
   const { subjectsByGrade, addSubject, removeSubject } = useSubject();
   const [newSubject, setNewSubject] = useState('');
   const t = useTranslations();
@@ -330,7 +330,7 @@ function WorkspaceSwitcher() {
             className="w-full justify-between h-auto py-2"
           >
             <div className="flex items-center gap-2">
-              <School className="h-5 w-5" />
+              <BookCopy className="h-5 w-5" />
               <div className="flex flex-col items-start text-left">
                   <span className='text-sm font-semibold line-clamp-1'>{selectedGradeText}</span>
                   <span className="text-xs text-muted-foreground line-clamp-1">{t(selectedSubject) || selectedSubject}</span>
@@ -495,7 +495,7 @@ export function AppSidebar() {
       <div className={cn("flex h-14 items-center", isExpanded ? "px-4" : "px-2 justify-center")}>
         <button onClick={toggle} className="flex items-center gap-2 font-semibold text-primary">
           <School className="h-6 w-6" />
-          {isExpanded && <span className="">TutorAlly</span>}
+          {isExpanded && <span className="">Sahayak</span>}
         </button>
          {!isMobile && isExpanded && (
              <Button variant="ghost" size="icon" className="ml-auto" onClick={toggle}>

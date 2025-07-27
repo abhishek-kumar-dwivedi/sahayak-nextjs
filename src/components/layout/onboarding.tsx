@@ -20,7 +20,7 @@ export function Onboarding() {
                     <School className="h-10 w-10" />
                 </div>
                 <CardTitle className="text-3xl">
-                    Welcome to TutorAlly, {user?.displayName || 'Teacher'}!
+                    Welcome to Sahayak, {user?.displayName || 'Teacher'}!
                 </CardTitle>
                 <CardDescription className="text-base max-w-md mx-auto pt-2">
                     Your new AI-powered teaching companion is ready. Let's start by creating your first workspace (e.g., "9th Grade").
