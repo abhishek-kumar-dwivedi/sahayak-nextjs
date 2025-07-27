@@ -18,7 +18,6 @@ import {
   Moon,
   Sun,
   PanelLeftClose,
-  PanelRightClose,
   CalendarDays,
   Trash2,
 } from 'lucide-react';
@@ -481,13 +480,13 @@ export function AppSidebar() {
   return (
     <div className="flex flex-col h-full">
       <div className={cn("flex h-14 items-center", isExpanded ? "px-4" : "px-2 justify-center")}>
-        <Link href="/" className="flex items-center gap-2 font-semibold text-primary">
+        <button onClick={toggle} className="flex items-center gap-2 font-semibold text-primary">
           <School className="h-6 w-6" />
           {isExpanded && <span className="">Sahayak</span>}
-        </Link>
-         {!isMobile && (
+        </button>
+         {!isMobile && isExpanded && (
              <Button variant="ghost" size="icon" className="ml-auto" onClick={toggle}>
-                {isExpanded ? <PanelLeftClose className="h-4 w-4" /> : <PanelRightClose className="h-4 w-4" />}
+                <PanelLeftClose className="h-4 w-4" />
                  <span className="sr-only">{t('toggleSidebar')}</span>
              </Button>
          )}
@@ -555,5 +554,3 @@ export function AppSidebar() {
     </div>
   );
 }
-
-    
