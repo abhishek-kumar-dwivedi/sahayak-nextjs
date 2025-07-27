@@ -3,7 +3,6 @@
 
 import { curriculumSuggestion, CurriculumSuggestionInput, CurriculumSuggestionOutput } from '@/ai/flows/curriculum-suggestion';
 import { z } from 'zod';
-import mockCurriculum from '@/data/mock-curriculum.json';
 
 const CurriculumFormSchema = z.object({
   topic: z.string().optional(),
@@ -46,11 +45,33 @@ export async function generateCurriculumAction(prevState: any, formData: FormDat
   }
   
   try {
+    // PDF processing is currently mocked and returns a static JSON structure.
+    // In a real application, you would parse the PDF and generate the curriculum.
     if (hasPdf) {
       await delay(1500); 
+      // This is where you would call a flow to process the PDF content
+      // For now, we return a mock curriculum.
+      // In a real scenario, you'd extract text from the PDF and pass it to curriculumSuggestion.
+      const mockData = {
+          "chapters": [
+              {
+                  "title": "Chapter 1: The Foundations of the Solar System (from PDF)",
+                  "subTopics": [
+                      {
+                          "title": "Introduction to Stars and Planets",
+                          "description": "Understanding the basic components of our cosmic neighborhood and the forces that govern them."
+                      },
+                      {
+                          "title": "The Birth of the Sun",
+                          "description": "Exploring the nebular hypothesis and the formation of our solar system's central star."
+                      }
+                  ]
+              }
+          ]
+      };
       return {
           message: 'success',
-          data: mockCurriculum as CurriculumSuggestionOutput,
+          data: mockData as CurriculumSuggestionOutput,
           error: null,
       }
     }
