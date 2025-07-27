@@ -4,12 +4,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  "projectId": "tutorally-1ud48",
-  "appId": "1:716370672295:web:86a774aed08a5c0bb0b982",
-  "storageBucket": "tutorally-1ud48.firebasestorage.app",
-  "apiKey": "AIzaSyACVwc10baIeUga2mk67AcxiXS7TS3bmVE",
-  "authDomain": "tutorally-1ud48.firebaseapp.com",
-  "messagingSenderId": "716370672295"
+  "projectId": "nextplate-gkw5s",
+  "appId": "1:881645093978:web:10fcadb8f654cdc12c0463",
+  "storageBucket": "nextplate-gkw5s.firebasestorage.app",
+  "apiKey": "AIzaSyC5TEKogLMwyuQ5dZEyBjtv1xJ1OkVQang",
+  "authDomain": "nextplate-gkw5s.firebaseapp.com",
+  "messagingSenderId": "881645093978"
 };
 
 
