@@ -6,125 +6,50 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { PlusCircle, School, Loader2 } from 'lucide-react';
 import { useTranslations } from '@/context/locale-context';
 import { useAuth } from '@/context/auth-context';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useState } from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useGrade } from '@/context/grade-context';
 import { useSubject } from '@/context/subject-context';
-import type { Workspace } from '@/context/grade-context';
-
-function OnboardingDialog({ children }: { children: React.ReactNode }) {
-  const { addGrade, fetchWorkspaces } = useGrade();
-  const { addSubject, setSelectedSubjectByGrade } = useSubject();
-  const [step, setStep] = useState(1);
-  const [newGrade, setNewGrade] = useState('');
-  const [newSubject, setNewSubject] = useState('');
-  const [createdWorkspace, setCreatedWorkspace] = useState<Workspace | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const [open, setOpen] = useState(false);
-  const t = useTranslations();
-
-  const handleCreateGrade = async () => {
-    if (newGrade.trim()) {
-      setIsCreating(true);
-      const workspace = await addGrade(newGrade.trim());
-      if (workspace) {
-        setCreatedWorkspace(workspace);
-        setStep(2);
-      }
-      setIsCreating(false);
-    }
-  };
-
-  const handleCreateSubject = async () => {
-    if (newSubject.trim() && createdWorkspace) {
-      setIsCreating(true);
-      await addSubject(createdWorkspace.grade, newSubject.trim());
-      // Re-fetch workspaces to update the global state and trigger the layout change
-      await fetchWorkspaces(); 
-      // Auto-select the new workspace
-      setSelectedSubjectByGrade(createdWorkspace.grade, newSubject.trim());
-      setIsCreating(false);
-      setOpen(false); // Close the dialog
-    }
-  };
-
-  const resetState = () => {
-    setStep(1);
-    setNewGrade('');
-    setNewSubject('');
-    setCreatedWorkspace(null);
-    setIsCreating(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-        setOpen(isOpen);
-        if (!isOpen) {
-            resetState();
-        }
-    }}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent onInteractOutside={e => e.preventDefault()} className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {step === 1 ? 'Create Your First Workspace' : `Add a Subject to ${createdWorkspace?.grade}`}
-          </DialogTitle>
-          <DialogDescription>
-            {step === 1 
-              ? "Workspaces help you organize content. Let's start with a grade name." 
-              : "Great! Now, let's add the first subject you'll be teaching for this grade."}
-          </DialogDescription>
-        </DialogHeader>
-        
-        {step === 1 && (
-            <div className="space-y-2 py-4">
-              <Label htmlFor="new-grade">Grade Name</Label>
-              <Input
-                id="new-grade"
-                value={newGrade}
-                onChange={(e) => setNewGrade(e.target.value)}
-                placeholder="e.g., 9th Grade, Form 3"
-              />
-            </div>
-        )}
-
-        {step === 2 && (
-            <div className="space-y-2 py-4 animate-fade-in">
-              <Label htmlFor="new-subject">Subject Name</Label>
-              <Input
-                id="new-subject"
-                value={newSubject}
-                onChange={(e) => setNewSubject(e.target.value)}
-                placeholder="e.g., Mathematics, History"
-              />
-            </div>
-        )}
-        
-        <DialogFooter>
-           {step === 1 && (
-                <Button onClick={handleCreateGrade} disabled={isCreating || !newGrade.trim()}>
-                    {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Continue
-                </Button>
-           )}
-            {step === 2 && (
-                <Button onClick={handleCreateSubject} disabled={isCreating || !newSubject.trim()}>
-                    {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Finish Setup
-                </Button>
-           )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+import { addWorkspace } from '@/services/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 
 export function Onboarding() {
   const t = useTranslations();
   const { user } = useAuth();
+  const { fetchWorkspaces } = useGrade();
+  const { setSelectedSubjectByGrade } = useSubject();
+  const { toast } = useToast();
+
+  const [grade, setGrade] = useState('');
+  const [subject, setSubject] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+
+  const handleCreateWorkspace = async () => {
+      if (!grade.trim() || !subject.trim()) return;
+      
+      setIsCreating(true);
+      try {
+          const newWorkspaceData = {
+              grade: grade.trim(),
+              subjects: [subject.trim()],
+          };
+          const newWorkspace = await addWorkspace(newWorkspaceData);
+          if (newWorkspace) {
+              await fetchWorkspaces();
+              setSelectedSubjectByGrade(newWorkspace.grade, newWorkspace.subjects[0]);
+          }
+      } catch (error) {
+          toast({
+              variant: 'destructive',
+              title: 'Error Creating Workspace',
+              description: 'Could not create your workspace. Please try again.'
+          });
+      } finally {
+          setIsCreating(false);
+      }
+  };
   
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background p-4 animate-fade-in">
@@ -137,18 +62,47 @@ export function Onboarding() {
                     Welcome to Sahayak, {user?.displayName || 'Teacher'}!
                 </CardTitle>
                 <CardDescription className="text-base max-w-md mx-auto pt-2">
-                    Your new AI-powered teaching companion is ready. Let's start by creating your first workspace (e.g., "9th Grade").
+                    Let's get you set up. Create your first workspace by defining a grade and a subject.
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <OnboardingDialog>
-                     <Button size="lg">
-                        <PlusCircle className="mr-2 h-5 w-5" />
-                        Create Your First Workspace
+                <div className="max-w-sm mx-auto text-left space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="grade-name">Grade Name</Label>
+                        <Input 
+                            id="grade-name"
+                            placeholder="e.g., 9th Grade, Form 3"
+                            value={grade}
+                            onChange={(e) => setGrade(e.target.value)}
+                            disabled={isCreating}
+                        />
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="subject-name">First Subject Name</Label>
+                        <Input 
+                            id="subject-name"
+                            placeholder="e.g., Mathematics, History"
+                            value={subject}
+                            onChange={(e) => setSubject(e.target.value)}
+                            disabled={isCreating}
+                        />
+                    </div>
+                    <Button 
+                        size="lg" 
+                        className="w-full"
+                        disabled={isCreating || !grade.trim() || !subject.trim()}
+                        onClick={handleCreateWorkspace}
+                    >
+                        {isCreating ? (
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        ) : (
+                            <PlusCircle className="mr-2 h-5 w-5" />
+                        )}
+                        Create Workspace
                     </Button>
-                </OnboardingDialog>
+                </div>
                 <p className="text-xs text-muted-foreground mt-4">
-                    Workspaces help you organize content for different grades or classes.
+                    You can add more grades and subjects later from the sidebar.
                 </p>
             </CardContent>
         </Card>
