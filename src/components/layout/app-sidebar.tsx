@@ -180,9 +180,9 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
   const [newSubject, setNewSubject] = useState('');
   const t = useTranslations();
 
-  const handleAddSubject = () => {
+  const handleAddSubject = async () => {
     if (newSubject.trim() && grade) {
-      addSubject(grade, newSubject.trim());
+      await addSubject(grade, newSubject.trim());
       setNewSubject('');
     }
   };
@@ -244,16 +244,18 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
     setGradeAdded('');
   };
 
-  const handleAddGrade = () => {
+  const handleAddGrade = async () => {
     if (newGrade.trim() && !grades.includes(newGrade.trim())) {
-      addGrade(newGrade.trim());
-      setGradeAdded(newGrade.trim());
+      const createdWorkspace = await addGrade(newGrade.trim());
+      if (createdWorkspace) {
+        setGradeAdded(createdWorkspace.grade);
+      }
     }
   };
 
-  const handleAddSubject = () => {
+  const handleAddSubject = async () => {
     if (newSubject.trim() && gradeAdded) {
-      addSubject(gradeAdded, newSubject.trim());
+      await addSubject(gradeAdded, newSubject.trim());
       setNewSubject('');
     }
   };

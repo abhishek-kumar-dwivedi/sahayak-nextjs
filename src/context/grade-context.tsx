@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { getWorkspaces, updateWorkspaces } from '@/services/firestore';
+import { getWorkspaces, addWorkspace, deleteWorkspace } from '@/services/firestore';
 
 type Workspace = {
     id: string; // Firestore document ID
@@ -14,11 +14,12 @@ type GradeContextType = {
   selectedGrade: string;
   setSelectedGrade: (grade: string) => void;
   grades: string[];
-  addGrade: (grade: string) => void;
+  addGrade: (grade: string) => Promise<Workspace | null>;
   removeGrade: (grade: string) => void;
   workspaces: Workspace[];
   setWorkspaces: (workspaces: Workspace[]) => void;
   isLoading: boolean;
+  fetchWorkspaces: () => Promise<void>;
 };
 
 const GradeContext = createContext<GradeContextType | undefined>(undefined);
@@ -28,31 +29,32 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
   const [selectedGrade, setSelectedGradeState] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-        setIsLoading(true);
-        
-        const loadedWorkspaces = await getWorkspaces() as Workspace[];
-        setWorkspacesState(loadedWorkspaces);
-        
-        const lastSelectedGrade = localStorage.getItem('last_selected_grade_v2');
-        const availableGrades = loadedWorkspaces.map((ws: Workspace) => ws.grade);
+  const fetchWorkspaces = async () => {
+      setIsLoading(true);
+      const loadedWorkspaces = await getWorkspaces() as Workspace[];
+      setWorkspacesState(loadedWorkspaces);
+      
+      const lastSelectedGrade = localStorage.getItem('last_selected_grade_v2');
+      const availableGrades = loadedWorkspaces.map((ws: Workspace) => ws.grade);
 
-        if (lastSelectedGrade && availableGrades.includes(lastSelectedGrade)) {
-            setSelectedGradeState(lastSelectedGrade);
-        } else if (availableGrades.length > 0) {
-            const firstGrade = availableGrades[0];
-            setSelectedGradeState(firstGrade);
-            localStorage.setItem('last_selected_grade_v2', firstGrade);
-        }
-        setIsLoading(false);
-    }
-    loadData();
+      if (lastSelectedGrade && availableGrades.includes(lastSelectedGrade)) {
+          setSelectedGradeState(lastSelectedGrade);
+      } else if (availableGrades.length > 0) {
+          const firstGrade = availableGrades[0];
+          setSelectedGradeState(firstGrade);
+          localStorage.setItem('last_selected_grade_v2', firstGrade);
+      }
+      setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchWorkspaces();
   }, []);
 
-  const setWorkspaces = async (newWorkspaces: Workspace[]) => {
+  const setWorkspaces = (newWorkspaces: Workspace[]) => {
     setWorkspacesState(newWorkspaces);
-    await updateWorkspaces(newWorkspaces);
+    // This function will no longer write to Firestore.
+    // Writes are handled by more specific functions now.
   };
   
   const setSelectedGrade = (grade: string) => {
@@ -60,21 +62,28 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('last_selected_grade_v2', grade);
   };
 
-  const addGrade = (grade: string) => {
+  const addGrade = async (grade: string): Promise<Workspace | null> => {
     if (grade.trim() && !workspaces.find(ws => ws.grade === grade.trim())) {
-      const newWorkspace = { 
-          id: grade.trim().replace(/\s+/g, '_'), 
+      const newWorkspaceData = { 
           grade: grade.trim(), 
           subjects: [] 
       };
-      const newWorkspaces = [...workspaces, newWorkspace];
-      setWorkspaces(newWorkspaces);
+      const newWorkspace = await addWorkspace(newWorkspaceData);
+      if (newWorkspace) {
+        await fetchWorkspaces(); // Refresh the list from Firestore
+        return newWorkspace;
+      }
     }
+    return null;
   };
 
-  const removeGrade = (gradeToRemove: string) => {
+  const removeGrade = async (gradeToRemove: string) => {
+    const workspaceToRemove = workspaces.find((ws) => ws.grade === gradeToRemove);
+    if (!workspaceToRemove) return;
+
+    await deleteWorkspace(workspaceToRemove.id);
     const newWorkspaces = workspaces.filter((ws) => ws.grade !== gradeToRemove);
-    setWorkspaces(newWorkspaces);
+    setWorkspacesState(newWorkspaces); // Optimistic update
 
     if (selectedGrade === gradeToRemove) {
       const newSelectedGrade = newWorkspaces.length > 0 ? newWorkspaces[0].grade : '';
@@ -91,7 +100,8 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
         removeGrade,
         workspaces,
         setWorkspaces,
-        isLoading
+        isLoading,
+        fetchWorkspaces
     }}>
       {children}
     </GradeContext.Provider>

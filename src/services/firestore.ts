@@ -1,28 +1,9 @@
+
 // src/services/firestore.ts
 'use server';
 
 import { db } from '@/lib/firebase';
-import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, where, orderBy, getDoc } from 'firebase/firestore';
-
-// A generic function to seed data if a collection is empty
-export async function seedCollection(collectionName: string, data: any[]) {
-    const collectionRef = collection(db, collectionName);
-    const snapshot = await getDocs(collectionRef);
-    if (snapshot.empty) {
-        console.log(`Seeding '${collectionName}' collection...`);
-        const promises = data.map(item => {
-            // If item has an ID, use it. Otherwise, let Firestore generate one.
-            if(item.id) {
-                return setDoc(doc(db, collectionName, item.id.toString()), item)
-            }
-            return addDoc(collectionRef, item);
-        });
-        await Promise.all(promises);
-        console.log(`Seeding for '${collectionName}' complete.`);
-    } else {
-        console.log(`'${collectionName}' collection already has data. Skipping seed.`);
-    }
-}
+import { collection, getDocs, doc, setDoc, addDoc, deleteDoc, query, orderBy, updateDoc } from 'firebase/firestore';
 
 // Workspace Services
 export const getWorkspaces = async () => {
@@ -31,12 +12,19 @@ export const getWorkspaces = async () => {
     return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
 };
 
-export const updateWorkspaces = async (workspaces: any[]) => {
-    const batch = workspaces.map(ws => {
-        const docRef = doc(db, 'workspaces', ws.id || ws.grade.replace(/\s+/g, '_')); // Use existing id or generate one
-        return setDoc(docRef, ws, { merge: true });
-    });
-    await Promise.all(batch);
+export const addWorkspace = async (workspace: { grade: string, subjects: string[] }) => {
+    const newDocRef = await addDoc(collection(db, 'workspaces'), workspace);
+    return { id: newDocRef.id, ...workspace };
+}
+
+export const updateWorkspace = async (workspaceId: string, updates: { subjects: string[] }) => {
+    const docRef = doc(db, 'workspaces', workspaceId);
+    await updateDoc(docRef, updates);
+}
+
+export const deleteWorkspace = async (workspaceId: string) => {
+    const docRef = doc(db, 'workspaces', workspaceId);
+    await deleteDoc(docRef);
 }
 
 
