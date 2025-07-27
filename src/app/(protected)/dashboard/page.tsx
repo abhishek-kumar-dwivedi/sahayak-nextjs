@@ -14,7 +14,7 @@ import { useSubject } from '@/context/subject-context';
 import { DailyPlan } from '@/components/planner/daily-plan';
 import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
-import { getProgressData } from '@/services/firestore';
+import { getProgressData, getEvents } from '@/services/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 
@@ -24,6 +24,16 @@ type Progress = {
     grade: string;
     subject: string;
 }
+
+type CalendarEvent = {
+  id: string; 
+  date: string;
+  period: number;
+  title: string;
+  description: string;
+  grade: string;
+  subject: string;
+};
 
 const chartConfig = {
   progress: {
@@ -37,19 +47,25 @@ function GradeDashboard({ grade, subject }: { grade: string, subject: string }) 
   const selectedGradeText = t(grade.replace(/\s+/g, '')) || grade;
   
   const [progressData, setProgressData] = useState<Progress[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
         setIsLoading(true);
-        const data = await getProgressData() as Progress[];
-        setProgressData(data);
+        const [progress, eventsData] = await Promise.all([
+            getProgressData(),
+            getEvents()
+        ]);
+        setProgressData(progress as Progress[]);
+        setEvents(eventsData as CalendarEvent[]);
         setIsLoading(false);
     }
     loadData();
   }, [])
 
   const filteredProgress = progressData.filter(p => p.grade === grade && p.subject === subject);
+  const filteredEvents = events.filter(e => e.grade === grade && e.subject === subject);
 
   return (
     <div className="grid gap-4 mt-4 md:grid-cols-2 lg:grid-cols-3 animate-slide-in-from-bottom-slow">
@@ -84,7 +100,11 @@ function GradeDashboard({ grade, subject }: { grade: string, subject: string }) 
         </CardContent>
       </Card>
       <div className='lg:col-span-1'>
-        <DailyPlan isDashboard={true} />
+        <DailyPlan 
+            isDashboard={true} 
+            events={filteredEvents}
+            isLoading={isLoading}
+        />
       </div>
     </div>
   );

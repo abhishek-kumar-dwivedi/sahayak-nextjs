@@ -25,24 +25,28 @@ type CalendarEvent = {
 export default function PlannerPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const t = useTranslations();
   const { selectedGrade } = useGrade();
   const { selectedSubject } = useSubject();
   
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    const fetchedEvents = await getEvents();
+    setEvents(fetchedEvents as CalendarEvent[]);
+    setIsLoading(false);
+  }
+
   useEffect(() => {
-    async function loadEvents() {
-        const fetchedEvents = await getEvents();
-        setEvents(fetchedEvents);
-    }
-    loadEvents();
+    fetchEvents();
   }, []);
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => e.grade === selectedGrade && e.subject === selectedSubject);
   }, [events, selectedGrade, selectedSubject]);
 
-  const handleEventsChange = (updatedEvents: CalendarEvent[]) => {
-      setEvents(updatedEvents);
+  const handleEventsChange = () => {
+      fetchEvents();
   }
 
   return (
@@ -55,7 +59,12 @@ export default function PlannerPage() {
         </header>
         <div className="grid gap-6 md:grid-cols-12">
           <div className="md:col-span-12 lg:col-span-8 xl:col-span-9">
-            <DailyPlan date={date} onEventsChange={handleEventsChange} />
+            <DailyPlan 
+                date={date} 
+                events={filteredEvents}
+                isLoading={isLoading}
+                onEventsChange={handleEventsChange} 
+            />
           </div>
           <div className="md:col-span-12 lg:col-span-4 xl:col-span-3">
             <Card className="sticky top-20 shadow-sm p-0 animate-slide-in-from-left">

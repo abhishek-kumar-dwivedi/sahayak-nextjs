@@ -172,7 +172,7 @@ export default function ContentGeneratorPage() {
       setHistory(newHistory);
       setSelectedContent(state.data);
     }
-  }, [state, history]);
+  }, [state.message, state.data, history]);
 
   const handleDelete = async (id: string) => {
     const result = await deleteContentAction(id);
