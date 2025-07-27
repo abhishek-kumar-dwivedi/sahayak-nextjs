@@ -197,13 +197,15 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
     await removeSubject(grade, subject);
     setIsRemoving(null);
   }
+  
+  const gradeText = t(grade) || grade;
 
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{t('manageSubjects')} for {t(grade.replace(/\s+/g, '')) || grade}</DialogTitle>
+          <DialogTitle>{t('manageSubjects')} for {gradeText}</DialogTitle>
           <DialogDescription>{t('manageSubjectsDesc')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -305,7 +307,7 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
               <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
                 {grades.map(grade => (
                   <div key={grade} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                    <span>{t(grade.replace(/\s+/g, '')) || grade}</span>
+                    <span>{t(grade) || grade}</span>
                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveGrade(grade)} disabled={isRemoving === grade}>
                        {isRemoving === grade ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-muted-foreground" />}
                     </Button>
@@ -333,7 +335,8 @@ function WorkspaceSwitcher() {
   const t = useTranslations();
   const { isExpanded } = useSidebar();
 
-  const selectedGradeText = t(selectedGrade.replace(/\s+/g, '')) || selectedGrade;
+  const selectedGradeText = t(selectedGrade) || selectedGrade;
+  const selectedSubjectText = t(selectedSubject) || selectedSubject;
 
   if (grades.length === 0) {
       return null;
@@ -349,7 +352,7 @@ function WorkspaceSwitcher() {
         </TooltipTrigger>
         <TooltipContent side="right">
             <p>{selectedGradeText}</p>
-            <p className="font-semibold">{t(selectedSubject) || selectedSubject}</p>
+            <p className="font-semibold">{selectedSubjectText}</p>
         </TooltipContent>
       </Tooltip>
     );
@@ -362,11 +365,11 @@ function WorkspaceSwitcher() {
             variant="outline"
             className="w-full justify-between h-auto py-2"
           >
-            <div className="flex items-center gap-2">
-              <BookCopy className="h-5 w-5" />
-              <div className="flex flex-col items-start text-left">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <BookCopy className="h-5 w-5 flex-shrink-0" />
+              <div className="flex flex-col items-start text-left overflow-hidden">
                   <span className='text-sm font-semibold line-clamp-1'>{selectedGradeText}</span>
-                  <span className="text-xs text-muted-foreground line-clamp-1">{t(selectedSubject) || selectedSubject}</span>
+                  <span className="text-xs text-muted-foreground line-clamp-1">{selectedSubjectText}</span>
               </div>
             </div>
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -379,7 +382,7 @@ function WorkspaceSwitcher() {
             {grades.map((grade) => (
               <DropdownMenuSub key={grade}>
                 <DropdownMenuSubTrigger>
-                  <span>{t(grade.replace(/\s+/g, '')) || grade}</span>
+                  <span>{t(grade) || grade}</span>
                   {selectedGrade === grade && <div className="w-2 h-2 rounded-full bg-primary ml-auto" />}
                 </DropdownMenuSubTrigger>
                 <DropdownMenuPortal>
@@ -394,7 +397,7 @@ function WorkspaceSwitcher() {
                           </DropdownMenuRadioItem>
                         ))}
                       </DropdownMenuRadioGroup>
-                    <DropdownMenuSeparator />
+                    {(subjectsByGrade[grade] || []).length > 0 && <DropdownMenuSeparator />}
                     <ManageSubjectsDialog grade={grade}>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                         <Settings className="mr-2 h-4 w-4" />
@@ -554,7 +557,7 @@ export function AppSidebar() {
                     href="/planner"
                     icon={<CalendarDays className="h-4 w-4" />}
                     text={t('planner')}
-                    isActive={isActive(isExpanded ? '/planner' : '#')}
+                    isActive={isActive('/planner')}
                   />
                   <SidebarMenuItem
                     href="/curriculum-guide"

@@ -46,7 +46,7 @@ const chartConfig = {
 
 function GradeDashboard({ grade, subject }: { grade: string, subject: string }) {
   const t = useTranslations();
-  const selectedGradeText = t(grade.replace(/\s+/g, '')) || grade;
+  const selectedGradeText = t(grade) || grade;
   
   const [progressData, setProgressData] = useState<Progress[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -149,7 +149,7 @@ export default function DashboardPage() {
   const { selectedSubject } = useSubject();
   const t = useTranslations();
   const { user } = useAuth();
-  const selectedGradeText = t(selectedGrade.replace(/\s+/g, '')) || selectedGrade;
+  const selectedGradeText = t(selectedGrade) || selectedGrade;
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-6 pt-6 animate-fade-in-slow">

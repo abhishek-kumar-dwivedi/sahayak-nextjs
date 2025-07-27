@@ -64,7 +64,7 @@ export default function CurriculumGuidePage() {
   const [fileName, setFileName] = useState('');
   const { toast } = useToast();
   const t = useTranslations();
-  const selectedGradeText = t(selectedGrade.replace(/\s+/g, '')) || selectedGrade;
+  const selectedGradeText = t(selectedGrade) || selectedGrade;
 
   useEffect(() => {
     if (state.error) {

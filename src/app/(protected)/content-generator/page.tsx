@@ -257,7 +257,7 @@ export default function ContentGeneratorPage() {
                   <CardHeader className='p-4'>
                     <CardTitle>{selectedContent?.topic || t('generatedContent')}</CardTitle>
                     <CardDescription>
-                      {selectedContent?.contentType ? `${t(selectedContent.contentType.replace(/\s+/g, '')) || selectedContent.contentType} for ${t(selectedContent.gradeLevel.replace(/\s+/g, '')) || selectedContent.gradeLevel}` : t('generatedContentDesc')}
+                      {selectedContent?.contentType ? `${t(selectedContent.contentType) || selectedContent.contentType} for ${t(selectedContent.gradeLevel) || selectedContent.gradeLevel}` : t('generatedContentDesc')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow overflow-y-auto p-4">
@@ -327,5 +327,3 @@ export default function ContentGeneratorPage() {
     </main>
   );
 }
-
-    

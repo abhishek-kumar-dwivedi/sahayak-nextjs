@@ -10,7 +10,6 @@ import { useState } from 'react';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { useGrade } from '@/context/grade-context';
-import { useSubject } from '@/context/subject-context';
 import { addWorkspace } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,7 +18,6 @@ export function Onboarding() {
   const t = useTranslations();
   const { user } = useAuth();
   const { fetchWorkspaces } = useGrade();
-  const { setSelectedSubjectByGrade } = useSubject();
   const { toast } = useToast();
 
   const [grade, setGrade] = useState('');
@@ -32,14 +30,11 @@ export function Onboarding() {
       setIsCreating(true);
       try {
           const newWorkspaceData = {
-              grade: grade.trim(),
-              subjects: [subject.trim()],
+              grade: grade,
+              subjects: [subject],
           };
-          const newWorkspace = await addWorkspace(newWorkspaceData);
-          if (newWorkspace) {
-              await fetchWorkspaces();
-              setSelectedSubjectByGrade(newWorkspace.grade, newWorkspace.subjects[0]);
-          }
+          await addWorkspace(newWorkspaceData);
+          await fetchWorkspaces();
       } catch (error) {
           toast({
               variant: 'destructive',
