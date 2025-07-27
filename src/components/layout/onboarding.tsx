@@ -15,7 +15,7 @@ import { useSubject } from '@/context/subject-context';
 import type { Workspace } from '@/context/grade-context';
 
 function OnboardingDialog({ children }: { children: React.ReactNode }) {
-  const { addGrade } = useGrade();
+  const { addGrade, fetchWorkspaces } = useGrade();
   const { addSubject, setSelectedSubjectByGrade } = useSubject();
   const [step, setStep] = useState(1);
   const [newGrade, setNewGrade] = useState('');
@@ -41,6 +41,8 @@ function OnboardingDialog({ children }: { children: React.ReactNode }) {
     if (newSubject.trim() && createdWorkspace) {
       setIsCreating(true);
       await addSubject(createdWorkspace.grade, newSubject.trim());
+      // Re-fetch workspaces to update the global state and trigger the layout change
+      await fetchWorkspaces(); 
       // Auto-select the new workspace
       setSelectedSubjectByGrade(createdWorkspace.grade, newSubject.trim());
       setIsCreating(false);
