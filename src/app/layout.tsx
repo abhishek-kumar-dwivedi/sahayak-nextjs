@@ -22,7 +22,7 @@ const lato = Lato({
 
 
 export const metadata: Metadata = {
-  title: 'Sahayak',
+  title: 'TutorAlly',
   description: 'Your AI-powered teaching companion.',
 };
 
@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Belleza&family=Alegreya:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={`${montserrat.variable} ${lato.variable} font-body antialiased h-full bg-background`}>
         <ThemeProvider
@@ -60,3 +60,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    
