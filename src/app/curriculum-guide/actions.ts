@@ -12,9 +12,6 @@ const CurriculumFormSchema = z.object({
 });
 
 
-// A simple delay function to simulate network latency
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export async function generateCurriculumAction(prevState: any, formData: FormData) {
   const validatedFields = CurriculumFormSchema.safeParse({
     topic: formData.get('topic'),
@@ -48,7 +45,6 @@ export async function generateCurriculumAction(prevState: any, formData: FormDat
     // PDF processing is currently mocked and returns a static JSON structure.
     // In a real application, you would parse the PDF and generate the curriculum.
     if (hasPdf) {
-      await delay(1500); 
       // This is where you would call a flow to process the PDF content
       // For now, we return a mock curriculum.
       // In a real scenario, you'd extract text from the PDF and pass it to curriculumSuggestion.
