@@ -141,6 +141,8 @@ export default function ContentGeneratorPage() {
   const [history, setHistory] = useState<GeneratedContent[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const [selectedContent, setSelectedContent] = useState<GeneratedContent | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
 
   useEffect(() => {
     async function loadHistory() {
@@ -185,6 +187,7 @@ export default function ContentGeneratorPage() {
   }, [state.message, state.data, history]);
 
   const handleDelete = async (id: string) => {
+    setDeletingId(id);
     const result = await deleteContentAction(id);
     if(result.success) {
         const newHistory = history.filter(item => item.id !== id);
@@ -195,6 +198,8 @@ export default function ContentGeneratorPage() {
         toast({ description: "Content deleted." });
     } else {
         toast({ variant: 'destructive', title: 'Error', description: result.message });
+    } finally {
+        setDeletingId(null);
     }
   };
 
@@ -302,8 +307,8 @@ export default function ContentGeneratorPage() {
                                 <p className="text-xs text-muted-foreground capitalize">{item.contentType} &bull; {new Date(item.createdAt).toLocaleDateString()}</p>
                                 <div className="flex items-center justify-end gap-1 mt-1.5">
                                     <AddToPlannerDialog contentItem={item} />
-                                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive text-xs" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }}>
-                                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                    <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive text-xs" onClick={(e) => { e.stopPropagation(); handleDelete(item.id); }} disabled={deletingId === item.id}>
+                                        {deletingId === item.id ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Trash2 className="mr-2 h-3.5 w-3.5" />}
                                         Delete
                                     </Button>
                                 </div>
@@ -322,3 +327,5 @@ export default function ContentGeneratorPage() {
     </main>
   );
 }
+
+    

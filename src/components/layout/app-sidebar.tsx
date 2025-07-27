@@ -21,6 +21,7 @@ import {
   CalendarDays,
   Trash2,
   PlusCircle,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -178,14 +179,24 @@ export function AppSidebarContainer({ children }: { children: React.ReactNode })
 export function ManageSubjectsDialog({ grade, children }: { grade: string, children: React.ReactNode }) {
   const { subjectsByGrade, addSubject, removeSubject } = useSubject();
   const [newSubject, setNewSubject] = useState('');
+  const [isAdding, setIsAdding] = useState(false);
+  const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const t = useTranslations();
 
   const handleAddSubject = async () => {
     if (newSubject.trim() && grade) {
+      setIsAdding(true);
       await addSubject(grade, newSubject.trim());
       setNewSubject('');
+      setIsAdding(false);
     }
   };
+
+  const handleRemoveSubject = async (subject: string) => {
+    setIsRemoving(subject);
+    await removeSubject(grade, subject);
+    setIsRemoving(null);
+  }
 
   return (
     <Dialog>
@@ -203,8 +214,12 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
               value={newSubject}
               onChange={(e) => setNewSubject(e.target.value)}
               placeholder={t('newSubjectPlaceholder')}
+              disabled={isAdding}
             />
-            <Button onClick={handleAddSubject}>{t('add')}</Button>
+            <Button onClick={handleAddSubject} disabled={isAdding || !newSubject.trim()}>
+              {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t('add')}
+            </Button>
           </div>
           <div className="space-y-2">
             <Label>{t('existingSubjects')}</Label>
@@ -212,8 +227,8 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
               {(subjectsByGrade[grade] || []).map(subject => (
                 <div key={subject} className="flex items-center justify-between p-2 bg-muted rounded-md">
                   <span>{t(subject) || subject}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSubject(grade, subject)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveSubject(subject)} disabled={isRemoving === subject}>
+                    {isRemoving === subject ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-muted-foreground" />}
                   </Button>
                 </div>
               ))}
@@ -236,6 +251,9 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
   const [newGrade, setNewGrade] = useState('');
   const [newSubject, setNewSubject] = useState('');
   const [gradeAdded, setGradeAdded] = useState('');
+  const [isAddingGrade, setIsAddingGrade] = useState(false);
+  const [isAddingSubject, setIsAddingSubject] = useState(false);
+  const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const t = useTranslations();
   
   const resetState = () => {
@@ -246,20 +264,30 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
 
   const handleAddGrade = async () => {
     if (newGrade.trim() && !grades.includes(newGrade.trim())) {
+      setIsAddingGrade(true);
       const createdWorkspace = await addGrade(newGrade.trim());
       if (createdWorkspace) {
         setGradeAdded(createdWorkspace.grade);
       }
+      setIsAddingGrade(false);
     }
   };
 
   const handleAddSubject = async () => {
     if (newSubject.trim() && gradeAdded) {
+      setIsAddingSubject(true);
       await addSubject(gradeAdded, newSubject.trim());
       setNewSubject('');
+      setIsAddingSubject(false);
     }
   };
   
+  const handleRemoveGrade = async (grade: string) => {
+    setIsRemoving(grade);
+    await removeGrade(grade);
+    setIsRemoving(null);
+  }
+
   const handleDone = () => {
       if (gradeAdded && subjectsForAddedGrade.length > 0) {
         setSelectedSubjectByGrade(gradeAdded, subjectsForAddedGrade[0]);
@@ -288,8 +316,12 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
                   value={newGrade}
                   onChange={(e) => setNewGrade(e.target.value)}
                   placeholder={t('newGradePlaceholder')}
+                  disabled={isAddingGrade}
                 />
-                <Button onClick={handleAddGrade} disabled={!newGrade.trim()}>{t('add')}</Button>
+                <Button onClick={handleAddGrade} disabled={!newGrade.trim() || isAddingGrade}>
+                  {isAddingGrade && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {t('add')}
+                </Button>
               </div>
             </div>
           ) : (
@@ -305,8 +337,12 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
                         value={newSubject}
                         onChange={(e) => setNewSubject(e.target.value)}
                         placeholder={t('newSubjectPlaceholder')}
+                        disabled={isAddingSubject}
                         />
-                        <Button onClick={handleAddSubject} disabled={!newSubject.trim()}>{t('add')}</Button>
+                        <Button onClick={handleAddSubject} disabled={!newSubject.trim() || isAddingSubject}>
+                           {isAddingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                           {t('add')}
+                        </Button>
                     </div>
                 </div>
                 {subjectsForAddedGrade.length > 0 && (
@@ -331,8 +367,8 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
                 {grades.map(grade => (
                   <div key={grade} className="flex items-center justify-between p-2 bg-muted rounded-md">
                     <span>{t(grade.replace(/\s+/g, '')) || grade}</span>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeGrade(grade)}>
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveGrade(grade)} disabled={isRemoving === grade}>
+                       {isRemoving === grade ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4 text-muted-foreground" />}
                     </Button>
                   </div>
                 ))}
@@ -632,3 +668,5 @@ export function AppSidebar() {
     </div>
   );
 }
+
+    

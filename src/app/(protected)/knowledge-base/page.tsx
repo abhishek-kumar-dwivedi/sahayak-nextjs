@@ -24,7 +24,7 @@ export default function KnowledgeBasePage() {
   const [files, setFiles] = useState<KnowledgeFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, startDeleteTransition] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { toast } = useToast();
   const t = useTranslations();
   
@@ -83,23 +83,24 @@ export default function KnowledgeBasePage() {
     }
   };
 
-  const handleDeleteFile = (fileId: string) => {
-    startDeleteTransition(async () => {
-        const fileToDelete = files.find(file => file.id === fileId);
-        if (!fileToDelete) return;
+  const handleDeleteFile = async (fileId: string) => {
+    setDeletingId(fileId);
+    const fileToDelete = files.find(file => file.id === fileId);
+    if (!fileToDelete) return;
 
-        try {
-            await deleteKnowledgeFile(fileId);
-            setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
-            toast({
-              variant: 'destructive',
-              title: t('fileDeleted'),
-              description: t('fileDeletedDesc').replace('{fileName}', fileToDelete.name),
-            });
-        } catch (e) {
-            toast({ variant: 'destructive', title: t('error'), description: 'Failed to delete file.' });
-        }
-    });
+    try {
+        await deleteKnowledgeFile(fileId);
+        setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+        toast({
+          variant: 'destructive',
+          title: t('fileDeleted'),
+          description: t('fileDeletedDesc').replace('{fileName}', fileToDelete.name),
+        });
+    } catch (e) {
+        toast({ variant: 'destructive', title: t('error'), description: 'Failed to delete file.' });
+    } finally {
+        setDeletingId(null);
+    }
   };
   
   return (
@@ -165,8 +166,8 @@ export default function KnowledgeBasePage() {
                           <p className="text-xs text-muted-foreground">{file.size}</p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} disabled={isDeleting}>
-                        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />}
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} disabled={deletingId === file.id}>
+                        {deletingId === file.id ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />}
                       </Button>
                     </div>
                   ))
@@ -184,3 +185,5 @@ export default function KnowledgeBasePage() {
     </main>
   );
 }
+
+    

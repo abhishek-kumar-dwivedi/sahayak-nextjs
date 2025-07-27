@@ -81,16 +81,16 @@ function AddEventDialog({ date, period, onEventChange }: { date: Date, period: n
                 <div className="grid gap-3 py-4">
                     <div className="space-y-1">
                         <Label htmlFor="title">{t('title')}</Label>
-                        <Input id="title" name="title" required />
+                        <Input id="title" name="title" required disabled={isPending} />
                     </div>
                     <div className="space-y-1">
                         <Label htmlFor="description">{t('description')}</Label>
-                        <Textarea id="description" name="description" />
+                        <Textarea id="description" name="description" disabled={isPending} />
                     </div>
                 </div>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button type="button" variant="outline">Cancel</Button>
+                        <Button type="button" variant="outline" disabled={isPending}>Cancel</Button>
                     </DialogClose>
                     <Button type="submit" disabled={isPending}>
                         {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -239,7 +239,7 @@ export function DailyPlan({
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem>
+                                            <DropdownMenuItem disabled>
                                                 <Edit className="mr-2 h-4 w-4" />
                                                 Edit
                                             </DropdownMenuItem>
@@ -270,3 +270,5 @@ export function DailyPlan({
      </Card>
   );
 }
+
+    
