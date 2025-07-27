@@ -1,8 +1,10 @@
 
+
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { getWorkspaces, addWorkspace, deleteWorkspace } from '@/services/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 type Workspace = {
     id: string; // Firestore document ID
@@ -28,33 +30,42 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
   const [workspaces, setWorkspacesState] = useState<Workspace[]>([]);
   const [selectedGrade, setSelectedGradeState] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
-  const fetchWorkspaces = async () => {
+  const fetchWorkspaces = useCallback(async () => {
       setIsLoading(true);
-      const loadedWorkspaces = await getWorkspaces() as Workspace[];
-      setWorkspacesState(loadedWorkspaces);
-      
-      const lastSelectedGrade = localStorage.getItem('last_selected_grade_v2');
-      const availableGrades = loadedWorkspaces.map((ws: Workspace) => ws.grade);
+      try {
+        const loadedWorkspaces = await getWorkspaces() as Workspace[];
+        setWorkspacesState(loadedWorkspaces);
+        
+        const lastSelectedGrade = localStorage.getItem('last_selected_grade_v2');
+        const availableGrades = loadedWorkspaces.map((ws: Workspace) => ws.grade);
 
-      if (lastSelectedGrade && availableGrades.includes(lastSelectedGrade)) {
-          setSelectedGradeState(lastSelectedGrade);
-      } else if (availableGrades.length > 0) {
-          const firstGrade = availableGrades[0];
-          setSelectedGradeState(firstGrade);
-          localStorage.setItem('last_selected_grade_v2', firstGrade);
+        if (lastSelectedGrade && availableGrades.includes(lastSelectedGrade)) {
+            setSelectedGradeState(lastSelectedGrade);
+        } else if (availableGrades.length > 0) {
+            const firstGrade = availableGrades[0];
+            setSelectedGradeState(firstGrade);
+            localStorage.setItem('last_selected_grade_v2', firstGrade);
+        }
+      } catch (e) {
+          toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Failed to load workspaces. Please refresh the page.',
+          });
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     fetchWorkspaces();
-  }, []);
+  }, [fetchWorkspaces]);
 
   const setWorkspaces = (newWorkspaces: Workspace[]) => {
     setWorkspacesState(newWorkspaces);
-    // This function will no longer write to Firestore.
-    // Writes are handled by more specific functions now.
   };
   
   const setSelectedGrade = (grade: string) => {

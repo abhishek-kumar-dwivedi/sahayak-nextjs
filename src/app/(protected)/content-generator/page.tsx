@@ -145,14 +145,24 @@ export default function ContentGeneratorPage() {
   useEffect(() => {
     async function loadHistory() {
         setIsLoadingHistory(true);
-        const historyData = await getContentHistory() as GeneratedContent[];
-        setHistory(historyData);
-        if(historyData.length > 0) {
-            setSelectedContent(historyData[0]);
+        try {
+            const historyData = await getContentHistory() as GeneratedContent[];
+            setHistory(historyData);
+            if(historyData.length > 0) {
+                setSelectedContent(historyData[0]);
+            }
+        } catch(e) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to load content history.',
+            });
+        } finally {
+            setIsLoadingHistory(false);
         }
-        setIsLoadingHistory(false);
     }
     loadHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { useGrade } from '@/context/grade-context';
 import { useSubject } from '@/context/subject-context';
 import { DailyPlan } from '@/components/planner/daily-plan';
 import { getEvents } from '@/services/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 type CalendarEvent = {
   id: string; // Firestore IDs are strings
@@ -29,16 +30,27 @@ export default function PlannerPage() {
   const t = useTranslations();
   const { selectedGrade } = useGrade();
   const { selectedSubject } = useSubject();
+  const { toast } = useToast();
   
   const fetchEvents = async () => {
     setIsLoading(true);
-    const fetchedEvents = await getEvents();
-    setEvents(fetchedEvents as CalendarEvent[]);
-    setIsLoading(false);
+    try {
+      const fetchedEvents = await getEvents();
+      setEvents(fetchedEvents as CalendarEvent[]);
+    } catch (e) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to load planner events. Please try again later.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   useEffect(() => {
     fetchEvents();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredEvents = useMemo(() => {

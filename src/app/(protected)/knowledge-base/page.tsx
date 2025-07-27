@@ -30,13 +30,23 @@ export default function KnowledgeBasePage() {
   
   const fetchFiles = async () => {
       setIsLoading(true);
-      const fetchedFiles = await getKnowledgeFiles() as KnowledgeFile[];
-      setFiles(fetchedFiles);
-      setIsLoading(false);
+      try {
+        const fetchedFiles = await getKnowledgeFiles() as KnowledgeFile[];
+        setFiles(fetchedFiles);
+      } catch (e) {
+          toast({
+              variant: 'destructive',
+              title: 'Error',
+              description: 'Failed to load knowledge base files.',
+          });
+      } finally {
+        setIsLoading(false);
+      }
   }
 
   useEffect(() => {
     fetchFiles();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

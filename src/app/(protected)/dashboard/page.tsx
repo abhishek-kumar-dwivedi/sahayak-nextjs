@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
-import { ArrowRight, BookCopy, PenSquare } from 'lucide-react';
+import { ArrowRight, BookCopy, PenSquare, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useGrade } from '@/context/grade-context';
 import { useTranslations } from '@/context/locale-context';
@@ -17,6 +17,8 @@ import { useEffect, useState } from 'react';
 import { getProgressData, getEvents } from '@/services/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type Progress = {
     month: string;
@@ -49,23 +51,55 @@ function GradeDashboard({ grade, subject }: { grade: string, subject: string }) 
   const [progressData, setProgressData] = useState<Progress[]>([]);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function loadData() {
         setIsLoading(true);
-        const [progress, eventsData] = await Promise.all([
-            getProgressData(),
-            getEvents()
-        ]);
-        setProgressData(progress as Progress[]);
-        setEvents(eventsData as CalendarEvent[]);
-        setIsLoading(false);
+        setError(null);
+        try {
+            const [progress, eventsData] = await Promise.all([
+                getProgressData(),
+                getEvents()
+            ]);
+            setProgressData(progress as Progress[]);
+            setEvents(eventsData as CalendarEvent[]);
+        } catch (e) {
+            const errorMessage = "Failed to load dashboard data. Please try again later.";
+            setError(errorMessage);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: errorMessage,
+            });
+        } finally {
+            setIsLoading(false);
+        }
     }
     loadData();
-  }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredProgress = progressData.filter(p => p.grade === grade && p.subject === subject);
   const filteredEvents = events.filter(e => e.grade === grade && e.subject === subject);
+  
+  if (error) {
+      return (
+         <Card className="lg:col-span-3">
+             <CardHeader/>
+             <CardContent className="flex flex-col items-center justify-center text-center h-80 text-muted-foreground p-4">
+                 <Alert variant="destructive" className="max-w-md">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error Loading Dashboard</AlertTitle>
+                    <AlertDescription>
+                     {error}
+                    </AlertDescription>
+                </Alert>
+            </CardContent>
+         </Card>
+      )
+  }
 
   return (
     <div className="grid gap-4 mt-4 md:grid-cols-2 lg:grid-cols-3 animate-slide-in-from-bottom-slow">
