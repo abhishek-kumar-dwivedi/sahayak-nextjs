@@ -232,52 +232,102 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
 
 export function ManageGradesDialog({ children }: { children: React.ReactNode }) {
   const { grades, addGrade, removeGrade } = useGrade();
+  const { subjectsByGrade, addSubject } = useSubject();
   const [newGrade, setNewGrade] = useState('');
+  const [newSubject, setNewSubject] = useState('');
+  const [gradeAdded, setGradeAdded] = useState('');
   const t = useTranslations();
 
   const handleAddGrade = () => {
-    if (newGrade.trim()) {
+    if (newGrade.trim() && !grades.includes(newGrade.trim())) {
       addGrade(newGrade.trim());
-      setNewGrade('');
+      setGradeAdded(newGrade.trim());
     }
   };
+
+  const handleAddSubject = () => {
+    if (newSubject.trim() && gradeAdded) {
+      addSubject(gradeAdded, newSubject.trim());
+      setNewSubject('');
+    }
+  };
+  
+  const subjectsForAddedGrade = gradeAdded ? subjectsByGrade[gradeAdded] || [] : [];
+  const isDoneButtonDisabled = !gradeAdded || subjectsForAddedGrade.length === 0;
 
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent onInteractOutside={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{t('manageGrades')}</DialogTitle>
           <DialogDescription>{t('manageGradesDesc')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="new-grade" className="sr-only">{t('newGrade')}</Label>
-            <Input
-              id="new-grade"
-              value={newGrade}
-              onChange={(e) => setNewGrade(e.target.value)}
-              placeholder={t('newGradePlaceholder')}
-            />
-            <Button onClick={handleAddGrade}>{t('add')}</Button>
-          </div>
-          <div className="space-y-2">
-            <Label>{t('existingGrades')}</Label>
-            <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
-              {grades.map(grade => (
-                <div key={grade} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                  <span>{t(grade.replace(/\s+/g, '')) || grade}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeGrade(grade)}>
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </div>
-              ))}
+          {!gradeAdded ? (
+            <div className="space-y-2">
+              <Label htmlFor="new-grade">{t('newGrade')}</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="new-grade"
+                  value={newGrade}
+                  onChange={(e) => setNewGrade(e.target.value)}
+                  placeholder={t('newGradePlaceholder')}
+                />
+                <Button onClick={handleAddGrade} disabled={!newGrade.trim()}>{t('add')}</Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className='animate-fade-in space-y-4'>
+                <div className="p-3 rounded-md bg-muted text-center">
+                    <p className="text-sm">Workspace created: <span className="font-semibold">{gradeAdded}</span></p>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="new-subject">{t('newSubject')}</Label>
+                    <div className="flex items-center gap-2">
+                        <Input
+                        id="new-subject"
+                        value={newSubject}
+                        onChange={(e) => setNewSubject(e.target.value)}
+                        placeholder={t('newSubjectPlaceholder')}
+                        />
+                        <Button onClick={handleAddSubject} disabled={!newSubject.trim()}>{t('add')}</Button>
+                    </div>
+                </div>
+                {subjectsForAddedGrade.length > 0 && (
+                     <div className="space-y-2">
+                        <Label>{t('existingSubjects')}</Label>
+                        <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
+                        {subjectsForAddedGrade.map(subject => (
+                            <div key={subject} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
+                            <span>{t(subject) || subject}</span>
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+          )}
+
+          {grades.length > 0 && !gradeAdded && (
+            <div className="space-y-2">
+              <Label>{t('existingGrades')}</Label>
+              <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
+                {grades.map(grade => (
+                  <div key={grade} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                    <span>{t(grade.replace(/\s+/g, '')) || grade}</span>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeGrade(grade)}>
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{t('done')}</Button>
+            <Button variant="outline" disabled={isDoneButtonDisabled}>{t('done')}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

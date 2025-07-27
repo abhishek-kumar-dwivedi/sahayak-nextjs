@@ -15,7 +15,7 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   const { user, loading: authLoading } = useAuth();
-  const { grades, isLoading: gradesLoading } = useGrade();
+  const { workspaces, isLoading: gradesLoading } = useGrade();
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +26,8 @@ export default function ProtectedLayout({
       router.replace('/login');
     }
   }, [user, authLoading, router]);
+  
+  const hasCompletedOnboarding = workspaces.length > 0 && workspaces.some(ws => ws.subjects.length > 0);
 
   // While loading auth or initial workspace data, show a spinner.
   if (authLoading || gradesLoading) {
@@ -39,7 +41,7 @@ export default function ProtectedLayout({
   // If there's a user, check if they have any workspaces.
   if (user) {
     // If no workspaces (grades) exist, show the onboarding screen.
-    if (grades.length === 0) {
+    if (!hasCompletedOnboarding) {
       return (
         <SidebarProvider>
           <Onboarding />
