@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import { getWorkspaces, addWorkspace, deleteWorkspace } from '@/services/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-type Workspace = {
+export type Workspace = {
     id: string; // Firestore document ID
     grade: string;
     subjects: string[];
@@ -79,10 +78,14 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
           grade: grade.trim(), 
           subjects: [] 
       };
-      const newWorkspace = await addWorkspace(newWorkspaceData);
-      if (newWorkspace) {
-        await fetchWorkspaces(); // Refresh the list from Firestore
-        return newWorkspace;
+      try {
+        const newWorkspace = await addWorkspace(newWorkspaceData);
+        if (newWorkspace) {
+            await fetchWorkspaces(); // Refresh the list from Firestore
+            return newWorkspace;
+        }
+      } catch (e) {
+         toast({ variant: 'destructive', title: 'Error creating workspace', description: 'Please try again.'});
       }
     }
     return null;
@@ -92,13 +95,17 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
     const workspaceToRemove = workspaces.find((ws) => ws.grade === gradeToRemove);
     if (!workspaceToRemove) return;
 
-    await deleteWorkspace(workspaceToRemove.id);
-    const newWorkspaces = workspaces.filter((ws) => ws.grade !== gradeToRemove);
-    setWorkspacesState(newWorkspaces); // Optimistic update
+    try {
+        await deleteWorkspace(workspaceToRemove.id);
+        await fetchWorkspaces();
 
-    if (selectedGrade === gradeToRemove) {
-      const newSelectedGrade = newWorkspaces.length > 0 ? newWorkspaces[0].grade : '';
-      setSelectedGrade(newSelectedGrade);
+        if (selectedGrade === gradeToRemove) {
+          const newWorkspaces = workspaces.filter((ws) => ws.grade !== gradeToRemove);
+          const newSelectedGrade = newWorkspaces.length > 0 ? newWorkspaces[0].grade : '';
+          setSelectedGrade(newSelectedGrade);
+        }
+    } catch(e) {
+         toast({ variant: 'destructive', title: 'Error deleting workspace', description: 'Please try again.'});
     }
   };
 

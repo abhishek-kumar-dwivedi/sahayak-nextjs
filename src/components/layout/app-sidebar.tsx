@@ -247,38 +247,23 @@ export function ManageSubjectsDialog({ grade, children }: { grade: string, child
 
 export function ManageGradesDialog({ children }: { children: React.ReactNode }) {
   const { grades, addGrade, removeGrade } = useGrade();
-  const { subjectsByGrade, addSubject, setSelectedSubjectByGrade } = useSubject();
   const [newGrade, setNewGrade] = useState('');
-  const [newSubject, setNewSubject] = useState('');
-  const [gradeAdded, setGradeAdded] = useState('');
-  const [isAddingGrade, setIsAddingGrade] = useState(false);
-  const [isAddingSubject, setIsAddingSubject] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
   const [isRemoving, setIsRemoving] = useState<string | null>(null);
   const t = useTranslations();
   
   const resetState = () => {
     setNewGrade('');
-    setNewSubject('');
-    setGradeAdded('');
+    setIsAdding(false);
+    setIsRemoving(null);
   };
 
   const handleAddGrade = async () => {
     if (newGrade.trim() && !grades.includes(newGrade.trim())) {
-      setIsAddingGrade(true);
-      const createdWorkspace = await addGrade(newGrade.trim());
-      if (createdWorkspace) {
-        setGradeAdded(createdWorkspace.grade);
-      }
-      setIsAddingGrade(false);
-    }
-  };
-
-  const handleAddSubject = async () => {
-    if (newSubject.trim() && gradeAdded) {
-      setIsAddingSubject(true);
-      await addSubject(gradeAdded, newSubject.trim());
-      setNewSubject('');
-      setIsAddingSubject(false);
+      setIsAdding(true);
+      await addGrade(newGrade.trim());
+      setIsAdding(false);
+      setNewGrade('');
     }
   };
   
@@ -287,16 +272,6 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
     await removeGrade(grade);
     setIsRemoving(null);
   }
-
-  const handleDone = () => {
-      if (gradeAdded && subjectsForAddedGrade.length > 0) {
-        setSelectedSubjectByGrade(gradeAdded, subjectsForAddedGrade[0]);
-      }
-      resetState();
-  };
-
-  const subjectsForAddedGrade = gradeAdded ? subjectsByGrade[gradeAdded] || [] : [];
-  const isDoneButtonDisabled = gradeAdded && subjectsForAddedGrade.length === 0;
 
   return (
     <Dialog onOpenChange={(open) => !open && resetState()}>
@@ -307,7 +282,6 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
           <DialogDescription>{t('manageGradesDesc')}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
-          {!gradeAdded ? (
             <div className="space-y-2">
               <Label htmlFor="new-grade">{t('newGrade')}</Label>
               <div className="flex items-center gap-2">
@@ -316,51 +290,16 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
                   value={newGrade}
                   onChange={(e) => setNewGrade(e.target.value)}
                   placeholder={t('newGradePlaceholder')}
-                  disabled={isAddingGrade}
+                  disabled={isAdding}
                 />
-                <Button onClick={handleAddGrade} disabled={!newGrade.trim() || isAddingGrade}>
-                  {isAddingGrade && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Button onClick={handleAddGrade} disabled={!newGrade.trim() || isAdding}>
+                  {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {t('add')}
                 </Button>
               </div>
             </div>
-          ) : (
-            <div className='animate-fade-in space-y-4'>
-                <div className="p-3 rounded-md bg-muted text-center">
-                    <p className="text-sm">Workspace created: <span className="font-semibold">{gradeAdded}</span></p>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="new-subject">{t('newSubject')}</Label>
-                    <div className="flex items-center gap-2">
-                        <Input
-                        id="new-subject"
-                        value={newSubject}
-                        onChange={(e) => setNewSubject(e.target.value)}
-                        placeholder={t('newSubjectPlaceholder')}
-                        disabled={isAddingSubject}
-                        />
-                        <Button onClick={handleAddSubject} disabled={!newSubject.trim() || isAddingSubject}>
-                           {isAddingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                           {t('add')}
-                        </Button>
-                    </div>
-                </div>
-                {subjectsForAddedGrade.length > 0 && (
-                     <div className="space-y-2">
-                        <Label>{t('existingSubjects')}</Label>
-                        <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
-                        {subjectsForAddedGrade.map(subject => (
-                            <div key={subject} className="flex items-center justify-between p-2 bg-muted/50 rounded-md">
-                            <span>{t(subject) || subject}</span>
-                            </div>
-                        ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-          )}
 
-          {grades.length > 0 && !gradeAdded && (
+          {grades.length > 0 && (
             <div className="space-y-2">
               <Label>{t('existingGrades')}</Label>
               <div className="max-h-48 overflow-y-auto space-y-2 rounded-md border p-2">
@@ -378,7 +317,7 @@ export function ManageGradesDialog({ children }: { children: React.ReactNode }) 
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline" disabled={isDoneButtonDisabled} onClick={handleDone}>{t('done')}</Button>
+            <Button variant="outline">{t('done')}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
@@ -397,14 +336,7 @@ function WorkspaceSwitcher() {
   const selectedGradeText = t(selectedGrade.replace(/\s+/g, '')) || selectedGrade;
 
   if (grades.length === 0) {
-      return (
-         <ManageGradesDialog>
-            <Button variant="outline" className={cn("w-full", !isExpanded && "w-auto")}>
-                <PlusCircle className={cn("h-4 w-4", isExpanded && "mr-2")} />
-                {isExpanded && t('newGrade')}
-            </Button>
-        </ManageGradesDialog>
-      )
+      return null;
   }
   
   if (!isExpanded) {
@@ -622,7 +554,7 @@ export function AppSidebar() {
                     href="/planner"
                     icon={<CalendarDays className="h-4 w-4" />}
                     text={t('planner')}
-                    isActive={isActive('/planner')}
+                    isActive={isActive(isExpanded ? '/planner' : '#')}
                   />
                   <SidebarMenuItem
                     href="/curriculum-guide"
@@ -668,5 +600,3 @@ export function AppSidebar() {
     </div>
   );
 }
-
-    
