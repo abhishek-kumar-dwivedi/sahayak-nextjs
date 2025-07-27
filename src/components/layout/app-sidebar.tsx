@@ -20,6 +20,7 @@ import {
   PanelLeftClose,
   CalendarDays,
   Trash2,
+  PlusCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -130,7 +131,7 @@ export function AppSidebarContainer({ children }: { children: React.ReactNode })
     if(isMobile) {
         return (
             <div className="flex flex-col h-full">
-                <header className="flex h-14 items-center gap-4 bg-muted/40 px-4 shrink-0">
+                <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 shrink-0">
                     <Sheet open={isExpanded} onOpenChange={toggle}>
                         <SheetTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -152,7 +153,7 @@ export function AppSidebarContainer({ children }: { children: React.ReactNode })
                        {/* Mobile Header Content can go here */}
                      </div>
                 </header>
-                <main className="flex-1 overflow-auto">{children}</main>
+                <main className="flex-1 overflow-auto bg-background">{children}</main>
             </div>
         )
     }
@@ -161,14 +162,14 @@ export function AppSidebarContainer({ children }: { children: React.ReactNode })
         <div className="grid min-h-0 md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr] h-full">
             <aside
                 className={cn(
-                    'hidden md:flex flex-col bg-muted/40 transition-all duration-300',
+                    'hidden md:flex flex-col border-r bg-muted/40 transition-all duration-300',
                     isExpanded ? 'w-64' : 'w-[72px]'
                 )}
             >
                 <AppSidebar />
             </aside>
             <div className="flex flex-col overflow-auto">
-                <main className="flex-1 overflow-auto">{children}</main>
+                <main className="flex-1 overflow-auto bg-background">{children}</main>
             </div>
         </div>
     );
@@ -294,12 +295,23 @@ function WorkspaceSwitcher() {
 
   const selectedGradeText = t(selectedGrade.replace(/\s+/g, '')) || selectedGrade;
 
+  if (grades.length === 0) {
+      return (
+         <ManageGradesDialog>
+            <Button variant="outline" className={cn("w-full", !isExpanded && "w-auto")}>
+                <PlusCircle className={cn("h-4 w-4", isExpanded && "mr-2")} />
+                {isExpanded && t('newGrade')}
+            </Button>
+        </ManageGradesDialog>
+      )
+  }
+  
   if (!isExpanded) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>
             <div className="flex flex-col items-center gap-2 py-2">
-                <School className="h-6 w-6" />
+                <BookCopy className="h-6 w-6" />
             </div>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -382,6 +394,7 @@ function ThemeToggle() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            aria-label={t('toggleTheme')}
         >
             <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -482,7 +495,7 @@ export function AppSidebar() {
       <div className={cn("flex h-14 items-center", isExpanded ? "px-4" : "px-2 justify-center")}>
         <button onClick={toggle} className="flex items-center gap-2 font-semibold text-primary">
           <School className="h-6 w-6" />
-          {isExpanded && <span className="">Sahayak</span>}
+          {isExpanded && <span className="">TutorAlly</span>}
         </button>
          {!isMobile && isExpanded && (
              <Button variant="ghost" size="icon" className="ml-auto" onClick={toggle}>
