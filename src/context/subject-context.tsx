@@ -36,14 +36,20 @@ export const SubjectProvider = ({ children }: { children: ReactNode }) => {
         if(lastSubjectForGrade && gradeSubjects.includes(lastSubjectForGrade)) {
             setSelectedSubjectState(lastSubjectForGrade);
         } else if (gradeSubjects.length > 0) {
-            setSelectedSubjectState(gradeSubjects[0]);
+            const firstSubject = gradeSubjects[0];
+            setSelectedSubjectState(firstSubject);
+            localStorage.setItem(`${lastSelectedSubjectKeyPrefix}${selectedGrade}`, firstSubject);
         } else {
             setSelectedSubjectState('');
         }
     } catch(e) {
         console.error("Could not set subject from local storage", e);
         const gradeSubjects = subjectsByGrade[selectedGrade] || [];
-        setSelectedSubjectState(gradeSubjects[0] || '');
+        if (gradeSubjects.length > 0) {
+            setSelectedSubjectState(gradeSubjects[0]);
+        } else {
+            setSelectedSubjectState('');
+        }
     }
   }, [selectedGrade, workspaces, isLoading]);
 

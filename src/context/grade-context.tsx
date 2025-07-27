@@ -41,7 +41,9 @@ export const GradeProvider = ({ children }: { children: ReactNode }) => {
         if (lastSelectedGrade && availableGrades.includes(lastSelectedGrade)) {
             setSelectedGradeState(lastSelectedGrade);
         } else if (availableGrades.length > 0) {
-            setSelectedGradeState(availableGrades[0]);
+            const firstGrade = availableGrades[0];
+            setSelectedGradeState(firstGrade);
+            localStorage.setItem('last_selected_grade_v2', firstGrade);
         }
         setIsLoading(false);
     }
