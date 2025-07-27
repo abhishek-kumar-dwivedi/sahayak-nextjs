@@ -21,8 +21,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // A hardcoded user object to simulate a logged-in user
 const hardcodedUser: MockUser = {
   uid: 'hardcoded-user-123',
-  displayName: 'Priya Sharma',
-  email: 'priya.sharma@example.com',
+  displayName: 'Sai Pawan',
+  email: 'saipawan0008@gmail.com',
   photoURL: 'https://placehold.co/40x40.png',
 };
 
