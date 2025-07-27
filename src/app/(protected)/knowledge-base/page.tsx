@@ -9,9 +9,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, File, Video, Trash2, Library, Loader2 } from 'lucide-react';
 import { useTranslations } from '@/context/locale-context';
-import Image from 'next/image';
 import { getKnowledgeFiles, addKnowledgeFile, deleteKnowledgeFile } from '@/services/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { NoFilesIllustration } from '@/components/illustrations/no-files';
 
 type KnowledgeFile = {
   id: string;
@@ -162,7 +162,7 @@ export default function KnowledgeBasePage() {
                   ))
                 ) : (
                    <div className="text-center py-12">
-                    <Image src="https://placehold.co/400x300.png" alt="Empty state" width={300} height={225} className="mx-auto rounded-lg mb-6 opacity-60" data-ai-hint="empty folder illustration" />
+                    <NoFilesIllustration className="w-56 h-40 mx-auto mb-6" />
                     <p className="font-semibold text-muted-foreground">{t('emptyKnowledgeBase')}</p>
                   </div>
                 )}

@@ -10,13 +10,13 @@ import { ArrowRight, BookCopy, PenSquare } from 'lucide-react';
 import Link from 'next/link';
 import { useGrade } from '@/context/grade-context';
 import { useTranslations } from '@/context/locale-context';
-import Image from 'next/image';
 import { useSubject } from '@/context/subject-context';
 import { DailyPlan } from '@/components/planner/daily-plan';
 import { useAuth } from '@/context/auth-context';
 import { useEffect, useState } from 'react';
 import { getProgressData } from '@/services/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyStateIllustration } from '@/components/illustrations/empty-state';
 
 type Progress = {
     month: string;
@@ -77,7 +77,7 @@ function GradeDashboard({ grade, subject }: { grade: string, subject: string }) 
             </ChartContainer>
           ) : (
              <div className="flex flex-col items-center justify-center text-center h-60 text-muted-foreground p-4">
-                <Image src="https://placehold.co/300x200.png" alt="No data" width={200} height={133} className="rounded-lg mb-4 opacity-50" data-ai-hint="empty chart illustration" />
+                <EmptyStateIllustration className="w-48 h-32 mb-4" />
                 <p>No progress data available for this workspace.</p>
               </div>
           )}

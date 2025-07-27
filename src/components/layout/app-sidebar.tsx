@@ -428,7 +428,7 @@ function UserMenu() {
                         <Button variant="ghost" className={cn("w-full h-auto", isExpanded ? "justify-start p-2" : "justify-center p-2")}>
                            <div className='flex items-center gap-3'>
                                 <Avatar className={cn(isExpanded ? 'h-8 w-8' : 'h-8 w-8')}>
-                                    <AvatarImage src={user?.photoURL || `https://placehold.co/40x40.png?text=${user?.displayName?.[0] || user?.email?.[0] || 'U'}`} alt={user?.displayName || "User"} />
+                                    <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || "User"} />
                                     <AvatarFallback>{user?.displayName?.[0] || user?.email?.[0] || 'U'}</AvatarFallback>
                                 </Avatar>
                                 {isExpanded && (
