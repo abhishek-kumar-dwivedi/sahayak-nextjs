@@ -1,32 +1,23 @@
+
 [
-  {
-    "id": "2024-07-21T10:00:00.000Z",
-    "createdAt": "2024-07-21T10:00:00.000Z",
-    "topic": "Introduction to Photosynthesis",
-    "gradeLevel": "7th Grade",
-    "subject": "Science",
-    "contentType": "lesson plan",
-    "learningObjective": "Students will be able to define photosynthesis and identify its key components (sunlight, water, carbon dioxide, chlorophyll).",
-    "content": "## Lesson Plan: Introduction to Photosynthesis\n\n**I. Topic:** Introduction to Photosynthesis\n\n**II. Grade Level:** 7th Grade\n\n**III. Subject:** Science\n\n**IV. Learning Objective:** By the end of this lesson, students will be able to define photosynthesis and identify its key components (sunlight, water, carbon dioxide, chlorophyll).\n\n**V. Materials:**\n- Whiteboard or blackboard\n- Markers or chalk\n- Diagram of a plant cell\n- Video on photosynthesis (optional)\n- Green leaves (e.g., spinach)\n- Rubbing alcohol\n- Coffee filter\n\n**VI. Procedure:**\n1.  **Introduction (5 minutes):** Begin by asking students what plants need to live. Discuss their answers and guide them towards the concepts of sunlight, water, and air.\n2.  **Presentation (15 minutes):** Introduce the term 'photosynthesis'. Break it down into 'photo' (light) and 'synthesis' (to make). Explain that it's the process plants use to make their own food. Use the plant cell diagram to point out the chloroplasts and chlorophyll.\n3.  **Activity (15 minutes):** (Optional) Conduct a simple chlorophyll extraction experiment using spinach leaves, rubbing alcohol, and a coffee filter to show the green pigment.\n4.  **Conclusion (5 minutes):** Recap the key components and the overall purpose of photosynthesis. Ask students to define the term in their own words."
-  },
-  {
-    "id": "2024-07-20T14:30:00.000Z",
-    "createdAt": "2024-07-20T14:30:00.000Z",
-    "topic": "Algebra Basics Quiz",
-    "gradeLevel": "9th Grade",
-    "subject": "Math",
-    "contentType": "quiz",
-    "learningObjective": "Assess students' understanding of basic algebraic concepts, including variables, coefficients, and solving simple linear equations.",
-    "content": "## Quiz: Algebra Basics\n\n**Instructions:** Answer all questions to the best of your ability.\n\n**1. Identify the variable in the expression `5x + 2`**\n   - A) 5\n   - B) x\n   - C) 2\n\n**2. What is the coefficient in the term `7y`?**\n   - A) 7\n   - B) y\n   - C) 0\n\n**3. Solve for x: `x + 3 = 10`**\n   - A) 7\n   - B) 3\n   - C) 13\n\n**4. Solve for y: `2y = 14`**\n   - A) 12\n   - B) 7\n   - C) 28\n\n**5. Simplify the expression: `3a + 2a`**\n   - A) 5a\n   - B) 6a\n   - C) 5a²"
-  },
-  {
-    "id": "2024-07-19T09:00:00.000Z",
-    "createdAt": "2024-07-19T09:00:00.000Z",
-    "topic": "The American Revolution Summary",
-    "gradeLevel": "11th Grade",
-    "subject": "History",
-    "contentType": "summary",
-    "learningObjective": "Provide students with a concise overview of the key causes, events, and outcomes of the American Revolution.",
-    "content": "## Summary: The American Revolution\n\nThe American Revolution (1775-1783) was a pivotal conflict where the thirteen American colonies fought for and won their independence from Great Britain. The war was the culmination of growing tensions over issues like taxation without representation, as exemplified by the Stamp Act and the Tea Act.\n\n**Key Events:**\n*   **Lexington and Concord (1775):** The first military engagements of the war.\n*   **Declaration of Independence (1776):** The colonies formally declared their separation from Britain.\n*   **Battle of Saratoga (1777):** A crucial American victory that convinced France to ally with the colonists.\n*   **Battle of Yorktown (1781):** The decisive battle where British General Cornwallis surrendered, effectively ending the war.\n\n**Outcome:**\nThe Treaty of Paris was signed in 1783, officially recognizing the United States of America as an independent nation. The revolution had a profound global impact, inspiring other independence movements around the world."
-  }
+    {
+        "id": "gen1",
+        "createdAt": "2024-07-28T10:00:00.000Z",
+        "topic": "The Water Cycle",
+        "gradeLevel": "7th Grade",
+        "subject": "Science",
+        "contentType": "lesson plan",
+        "learningObjective": "Students will be able to describe the stages of the water cycle.",
+        "content": "This is a detailed lesson plan about the water cycle..."
+    },
+    {
+        "id": "gen2",
+        "createdAt": "2024-07-27T15:30:00.000Z",
+        "topic": "Solving Linear Equations",
+        "gradeLevel": "8th Grade",
+        "subject": "Math",
+        "contentType": "worksheet",
+        "learningObjective": "Students will practice solving for x in various linear equations.",
+        "content": "Here is a worksheet with 20 linear equations to solve..."
+    }
 ]

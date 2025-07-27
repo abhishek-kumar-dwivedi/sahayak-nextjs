@@ -2,18 +2,7 @@
 'use server';
 
 import { z } from 'zod';
-import fs from 'fs/promises';
-import path from 'path';
-
-type CalendarEvent = {
-  id: number;
-  date: string;
-  period: number;
-  title: string;
-  description: string;
-  grade: string;
-  subject: string;
-};
+import { addEvent, deleteEvent } from '@/services/firestore';
 
 type GeneratedContent = {
   id: string;
@@ -25,30 +14,6 @@ type GeneratedContent = {
   learningObjective: string;
   content: string;
 };
-
-
-const eventsFilePath = path.join(process.cwd(), 'src/data/events.json');
-
-async function readEvents(): Promise<CalendarEvent[]> {
-  try {
-    const data = await fs.readFile(eventsFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
-    }
-    console.error("Failed to read events:", error);
-    return [];
-  }
-}
-
-async function writeEvents(data: CalendarEvent[]): Promise<void> {
-    try {
-        await fs.writeFile(eventsFilePath, JSON.stringify(data, null, 2), 'utf-8');
-    } catch (error) {
-        console.error("Failed to write events:", error);
-    }
-}
 
 const EventFormSchema = z.object({
   title: z.string().min(1, 'Title is required.'),
@@ -73,17 +38,14 @@ export async function addEventAction(formData: FormData) {
     return { success: false, message: 'Invalid data provided.' };
   }
 
-  const newEvent: CalendarEvent = {
-    id: Date.now(),
+  const newEvent = {
     ...validatedFields.data,
     description: validatedFields.data.description || '',
     date: new Date(validatedFields.data.date).toISOString().split('T')[0],
   };
 
   try {
-    const events = await readEvents();
-    events.push(newEvent);
-    await writeEvents(events);
+    await addEvent(newEvent);
     return { success: true, message: 'Event added successfully.' };
   } catch (error) {
     console.error('Failed to add event:', error);
@@ -92,8 +54,7 @@ export async function addEventAction(formData: FormData) {
 }
 
 export async function addEventFromContent(content: GeneratedContent, date: Date, period: number) {
-    const newEvent: CalendarEvent = {
-        id: Date.now(),
+    const newEvent = {
         title: content.topic,
         description: `Scheduled from Content Generator: ${content.contentType} - ${content.learningObjective}`,
         date: date.toISOString().split('T')[0],
@@ -103,9 +64,7 @@ export async function addEventFromContent(content: GeneratedContent, date: Date,
     };
     
     try {
-        const events = await readEvents();
-        events.push(newEvent);
-        await writeEvents(events);
+        await addEvent(newEvent);
         return { success: true, message: 'Event added successfully.' };
     } catch (error) {
         console.error('Failed to add event from content:', error);
@@ -114,11 +73,9 @@ export async function addEventFromContent(content: GeneratedContent, date: Date,
 }
 
 
-export async function deleteEventAction(eventId: number) {
+export async function deleteEventAction(eventId: string) {
   try {
-    const events = await readEvents();
-    const updatedEvents = events.filter(e => e.id !== eventId);
-    await writeEvents(updatedEvents);
+    await deleteEvent(eventId);
     return { success: true, message: 'Event deleted successfully.' };
   } catch (error) {
     console.error('Failed to delete event:', error);

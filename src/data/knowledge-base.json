@@ -1,14 +1,15 @@
+
 [
-  {
-    "id": 1,
-    "name": "photosynthesis-notes.pdf",
-    "type": "pdf",
-    "size": "1.2 MB"
-  },
-  {
-    "id": 2,
-    "name": "intro-to-algebra.mp4",
-    "type": "video",
-    "size": "25.6 MB"
-  }
+    {
+        "id": "kb1",
+        "name": "Chapter_5_Biology.pdf",
+        "type": "pdf",
+        "size": "2.1 MB"
+    },
+    {
+        "id": "kb2",
+        "name": "Intro_to_Calculus.mp4",
+        "type": "video",
+        "size": "25.4 MB"
+    }
 ]

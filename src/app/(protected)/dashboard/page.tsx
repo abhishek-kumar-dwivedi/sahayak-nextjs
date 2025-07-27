@@ -12,18 +12,11 @@ import { useGrade } from '@/context/grade-context';
 import { useTranslations } from '@/context/locale-context';
 import Image from 'next/image';
 import { useSubject } from '@/context/subject-context';
-import lessons from '@/data/lessons.json';
-import progressData from '@/data/progress.json';
 import { DailyPlan } from '@/components/planner/daily-plan';
 import { useAuth } from '@/context/auth-context';
-
-type Lesson = {
-  id: number;
-  titleKey: string;
-  date: string;
-  grade: string;
-  subject: string;
-};
+import { useEffect, useState } from 'react';
+import { getProgressData } from '@/services/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Progress = {
     month: string;
@@ -42,8 +35,20 @@ const chartConfig = {
 function GradeDashboard({ grade, subject }: { grade: string, subject: string }) {
   const t = useTranslations();
   const selectedGradeText = t(grade.replace(/\s+/g, '')) || grade;
+  
+  const [progressData, setProgressData] = useState<Progress[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredLessons = lessons.filter(l => l.grade === grade && l.subject === subject);
+  useEffect(() => {
+    async function loadData() {
+        setIsLoading(true);
+        const data = await getProgressData() as Progress[];
+        setProgressData(data);
+        setIsLoading(false);
+    }
+    loadData();
+  }, [])
+
   const filteredProgress = progressData.filter(p => p.grade === grade && p.subject === subject);
 
   return (
@@ -56,7 +61,9 @@ function GradeDashboard({ grade, subject }: { grade: string, subject: string }) 
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {filteredProgress.length > 0 ? (
+          {isLoading ? (
+            <Skeleton className="h-60 w-full" />
+          ) : filteredProgress.length > 0 ? (
             <ChartContainer config={chartConfig} className="h-60 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={filteredProgress} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>

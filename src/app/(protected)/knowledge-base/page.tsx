@@ -1,69 +1,94 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Upload, File, Video, Trash2, Library } from 'lucide-react';
+import { Upload, File, Video, Trash2, Library, Loader2 } from 'lucide-react';
 import { useTranslations } from '@/context/locale-context';
 import Image from 'next/image';
-import initialFiles from '@/data/knowledge-base.json';
+import { getKnowledgeFiles, addKnowledgeFile, deleteKnowledgeFile } from '@/services/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type KnowledgeFile = {
-  id: number;
+  id: string;
   name: string;
-  type: 'pdf' | 'video';
+  type: 'pdf' | 'video' | 'other';
   size: string;
 };
 
 export default function KnowledgeBasePage() {
   const [files, setFiles] = useState<KnowledgeFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, startDeleteTransition] = useTransition();
   const { toast } = useToast();
   const t = useTranslations();
   
+  const fetchFiles = async () => {
+      setIsLoading(true);
+      const fetchedFiles = await getKnowledgeFiles() as KnowledgeFile[];
+      setFiles(fetchedFiles);
+      setIsLoading(false);
+  }
+
   useEffect(() => {
-    // In a real app, this would be an API call.
-    // For now, we load from the JSON file.
-    setFiles(initialFiles);
+    fetchFiles();
   }, []);
 
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const uploadedFile = event.target.files?.[0];
     if (!uploadedFile) return;
 
     setIsUploading(true);
-    // Simulate upload delay
-    setTimeout(() => {
-      const fileType = uploadedFile.type.includes('pdf') ? 'pdf' : 'video';
-      const newFile: KnowledgeFile = {
-        id: Date.now(),
-        name: uploadedFile.name,
-        type: fileType,
-        size: `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`,
-      };
-      setFiles((prevFiles) => [...prevFiles, newFile]);
-      setIsUploading(false);
-      toast({
-        title: t('fileUploaded'),
-        description: t('fileUploadedDesc').replace('{fileName}', uploadedFile.name),
-      });
-    }, 1500);
+    
+    let fileType: KnowledgeFile['type'] = 'other';
+    if (uploadedFile.type.includes('pdf')) {
+        fileType = 'pdf';
+    } else if (uploadedFile.type.startsWith('video/')) {
+        fileType = 'video';
+    }
+
+    const newFile = {
+      name: uploadedFile.name,
+      type: fileType,
+      size: `${(uploadedFile.size / 1024 / 1024).toFixed(2)} MB`,
+    };
+
+    try {
+        const newId = await addKnowledgeFile(newFile);
+        setFiles((prevFiles) => [...prevFiles, { ...newFile, id: newId }]);
+        toast({
+            title: t('fileUploaded'),
+            description: t('fileUploadedDesc').replace('{fileName}', uploadedFile.name),
+        });
+    } catch(e) {
+        toast({ variant: 'destructive', title: t('error'), description: 'Failed to upload file.' });
+    } finally {
+        setIsUploading(false);
+    }
   };
 
-  const handleDeleteFile = (fileId: number) => {
-    const fileToDelete = files.find(file => file.id === fileId);
-    if (!fileToDelete) return;
+  const handleDeleteFile = (fileId: string) => {
+    startDeleteTransition(async () => {
+        const fileToDelete = files.find(file => file.id === fileId);
+        if (!fileToDelete) return;
 
-    setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
-    toast({
-      variant: 'destructive',
-      title: t('fileDeleted'),
-      description: t('fileDeletedDesc').replace('{fileName}', fileToDelete.name),
+        try {
+            await deleteKnowledgeFile(fileId);
+            setFiles((prevFiles) => prevFiles.filter((file) => file.id !== fileId));
+            toast({
+              variant: 'destructive',
+              title: t('fileDeleted'),
+              description: t('fileDeletedDesc').replace('{fileName}', fileToDelete.name),
+            });
+        } catch (e) {
+            toast({ variant: 'destructive', title: t('error'), description: 'Failed to delete file.' });
+        }
     });
   };
   
@@ -90,7 +115,7 @@ export default function KnowledgeBasePage() {
               <Label htmlFor="file-upload" className="group cursor-pointer">
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted rounded-lg p-6 text-center hover:border-primary transition-colors duration-300 bg-background hover:bg-primary/5">
                    <div className="bg-primary/10 text-primary p-3 rounded-full mb-4 group-hover:scale-105 transition-transform duration-300">
-                    <Upload className="h-8 w-8" />
+                    {isUploading ? <Loader2 className="h-8 w-8 animate-spin"/> : <Upload className="h-8 w-8" />}
                   </div>
                   <p className="text-md font-semibold text-primary">{t('chooseFiles')}</p>
                   <p className="text-sm text-muted-foreground mt-1">{t('dragAndDrop')}</p>
@@ -115,7 +140,12 @@ export default function KnowledgeBasePage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {files.length > 0 ? (
+                {isLoading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
+                ) : files.length > 0 ? (
                   files.map((file) => (
                     <div key={file.id} className="flex items-center justify-between p-3 rounded-lg bg-card border hover:bg-accent transition-colors duration-200 hover:shadow-md animate-fade-in">
                       <div className="flex items-center gap-3">
@@ -125,8 +155,8 @@ export default function KnowledgeBasePage() {
                           <p className="text-xs text-muted-foreground">{file.size}</p>
                         </div>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)}>
-                        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />
+                      <Button variant="ghost" size="icon" onClick={() => handleDeleteFile(file.id)} disabled={isDeleting}>
+                        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin"/> : <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive transition-colors" />}
                       </Button>
                     </div>
                   ))

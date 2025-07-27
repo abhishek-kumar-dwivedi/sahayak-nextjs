@@ -1,13 +1,12 @@
 
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo, useTransition, useEffect } from 'react';
 import { format, isSameDay, parseISO, startOfDay } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from '@/context/locale-context';
 import { PlusCircle, Edit, Trash2, Loader2, MoreVertical, BookOpen, ArrowRight } from 'lucide-react';
-import initialEvents from '@/data/events.json';
 import {
   Dialog,
   DialogContent,
@@ -26,11 +25,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { addEventAction, deleteEventAction } from '@/app/planner/actions';
 import { useToast } from '@/hooks/use-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import dailyPlanData from '@/data/daily-plan.json';
 import Link from 'next/link';
+import { getEvents } from '@/services/firestore';
+import { Skeleton } from '../ui/skeleton';
 
 type CalendarEvent = {
-  id: number;
+  id: string; // Firestore IDs are strings
   date: string;
   period: number;
   title: string;
@@ -104,8 +104,9 @@ function AddEventDialog({ date, period, onEventAdd }: { date: Date, period: numb
     )
 }
 
-export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date, isDashboard?: boolean }) {
-  const [events, setEvents] = useState<CalendarEvent[]>(initialEvents);
+export function DailyPlan({ date: propDate, isDashboard = false, onEventsChange }: { date?: Date, isDashboard?: boolean, onEventsChange?: (events: CalendarEvent[]) => void }) {
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const t = useTranslations();
@@ -114,10 +115,23 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
   const totalPeriods = 8;
   const date = propDate || new Date();
 
+  const fetchEvents = async () => {
+    setIsLoading(true);
+    const fetchedEvents = await getEvents();
+    setEvents(fetchedEvents);
+    if(onEventsChange) {
+        onEventsChange(fetchedEvents);
+    }
+    setIsLoading(false);
+  }
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   const filteredEvents = useMemo(() => {
-     const source = isDashboard ? dailyPlanData : events;
-     return source.filter(e => e.grade === selectedGrade && e.subject === selectedSubject);
-  }, [events, selectedGrade, selectedSubject, isDashboard]);
+     return events.filter(e => e.grade === selectedGrade && e.subject === selectedSubject);
+  }, [events, selectedGrade, selectedSubject]);
 
   const selectedDayEvents = useMemo(() => {
     if (!date) return [];
@@ -136,16 +150,11 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
       return grouped;
   }, [selectedDayEvents]);
 
-  const refreshEvents = () => {
-     // This is a mock refresh. In a real app, you'd re-fetch from the server.
-     setEvents(initialEvents);
-  }
-
-  const handleDeleteEvent = (eventId: number) => {
+  const handleDeleteEvent = (eventId: string) => {
      startTransition(async () => {
         const result = await deleteEventAction(eventId);
         if (result.success) {
-            setEvents(prev => prev.filter(e => e.id !== eventId));
+            fetchEvents();
             toast({ title: "Event Deleted", description: "The event has been removed from your planner." });
         } else {
             toast({ variant: 'destructive', title: "Error", description: result.message });
@@ -164,8 +173,13 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
             </CardHeader>
             <CardContent className="flex-grow">
                  <div className="space-y-2 h-full">
-                    {selectedDayEvents.length > 0 ? (
-                      selectedDayEvents.map((event) => (
+                    {isLoading ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-12 w-full" />
+                            <Skeleton className="h-12 w-full" />
+                        </div>
+                    ) : selectedDayEvents.length > 0 ? (
+                      selectedDayEvents.sort((a, b) => a.period - b.period).map((event) => (
                         <div key={event.id} className="flex items-center justify-between p-2.5 rounded-lg bg-accent/50 hover:bg-accent/80 transition-colors duration-200">
                           <div>
                             <p className="font-semibold text-sm text-foreground">{event.title}</p>
@@ -205,7 +219,16 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
         </CardHeader>
         <CardContent className="p-4 pt-0">
             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                {date && Array.from({ length: totalPeriods }, (_, i) => i + 1).map(period => {
+                {isLoading ? (
+                     Array.from({ length: totalPeriods }).map((_, i) => (
+                        <div key={i} className="flex items-start gap-3 rounded-lg border p-3 min-h-[72px]">
+                            <Skeleton className="h-8 w-12" />
+                            <div className='flex-1 border-l pl-3 h-full'>
+                                <Skeleton className="h-5 w-3/4" />
+                            </div>
+                        </div>
+                     ))
+                ) : date && Array.from({ length: totalPeriods }, (_, i) => i + 1).map(period => {
                     const event = eventsByPeriod[period];
                     return (
                        <div key={period} className="flex items-start gap-3 rounded-lg border p-3 bg-card hover:border-primary/20 transition-all duration-300 min-h-[72px] animate-fade-in">
@@ -231,6 +254,7 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
                                                 Edit
                                             </DropdownMenuItem>
                                             <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => handleDeleteEvent(event.id)} disabled={isPending}>
+                                                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 Delete
                                             </DropdownMenuItem>
@@ -239,7 +263,7 @@ export function DailyPlan({ date: propDate, isDashboard = false }: { date?: Date
                                 </div>
                             ) : (
                                 <div className="h-full">
-                                    <AddEventDialog date={date} period={period} onEventAdd={refreshEvents} />
+                                    <AddEventDialog date={date} period={period} onEventAdd={fetchEvents} />
                                 </div>
                             )}
                            </div>

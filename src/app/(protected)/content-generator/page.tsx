@@ -19,8 +19,10 @@ import { useSearchParams } from 'next/navigation';
 import { addEventFromContent } from '@/app/planner/actions';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar } from '@/components/ui/calendar';
-import contentHistory from '@/data/generated-content.json';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { getContentHistory } from '@/services/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 type GeneratedContent = {
   id: string;
@@ -136,8 +138,22 @@ export default function ContentGeneratorPage() {
   const searchParams = useSearchParams();
   const topicFromQuery = searchParams.get('topic');
 
-  const [history, setHistory] = useState<GeneratedContent[]>(contentHistory);
-  const [selectedContent, setSelectedContent] = useState<GeneratedContent | null>(state.data || (history.length > 0 ? history[0] : null));
+  const [history, setHistory] = useState<GeneratedContent[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [selectedContent, setSelectedContent] = useState<GeneratedContent | null>(null);
+
+  useEffect(() => {
+    async function loadHistory() {
+        setIsLoadingHistory(true);
+        const historyData = await getContentHistory() as GeneratedContent[];
+        setHistory(historyData);
+        if(historyData.length > 0) {
+            setSelectedContent(historyData[0]);
+        }
+        setIsLoadingHistory(false);
+    }
+    loadHistory();
+  }, []);
 
   useEffect(() => {
     if (state.error) {
@@ -230,7 +246,14 @@ export default function ContentGeneratorPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow overflow-y-auto p-4">
-                    {selectedContent ? (
+                    {isLoadingHistory ? (
+                        <div className="space-y-4">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-1/2" />
+                        </div>
+                    ) : selectedContent ? (
                       <div className="prose dark:prose-invert prose-sm max-w-none text-foreground whitespace-pre-wrap leading-relaxed animate-fade-in">
                         {selectedContent.content}
                       </div>
@@ -256,7 +279,14 @@ export default function ContentGeneratorPage() {
                         <CardDescription>{t('contentHistoryDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="flex-grow overflow-y-auto space-y-2 p-4">
-                        {history.length > 0 ? history.map(item => (
+                        {isLoadingHistory ? (
+                             Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="p-2 rounded-lg border">
+                                    <Skeleton className="h-4 w-3/4 mb-2" />
+                                    <Skeleton className="h-3 w-1/2" />
+                                </div>
+                            ))
+                        ) : history.length > 0 ? history.map(item => (
                             <div key={item.id} className={`p-2 rounded-lg cursor-pointer border transition-colors ${selectedContent?.id === item.id ? 'bg-muted border-primary/20' : 'hover:bg-muted/50'}`} onClick={() => setSelectedContent(item)}>
                                 <h4 className="font-semibold text-xs truncate">{item.topic}</h4>
                                 <p className="text-xs text-muted-foreground capitalize">{item.contentType} &bull; {new Date(item.createdAt).toLocaleDateString()}</p>

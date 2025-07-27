@@ -2,18 +2,18 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { isSameDay, parseISO } from 'date-fns';
 import { Card } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { useTranslations } from '@/context/locale-context';
-import initialEvents from '@/data/events.json';
 import { useGrade } from '@/context/grade-context';
 import { useSubject } from '@/context/subject-context';
 import { DailyPlan } from '@/components/planner/daily-plan';
+import { getEvents } from '@/services/firestore';
 
 type CalendarEvent = {
-  id: number;
+  id: string; // Firestore IDs are strings
   date: string;
   period: number;
   title: string;
@@ -24,13 +24,26 @@ type CalendarEvent = {
 
 export default function PlannerPage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const t = useTranslations();
   const { selectedGrade } = useGrade();
   const { selectedSubject } = useSubject();
   
+  useEffect(() => {
+    async function loadEvents() {
+        const fetchedEvents = await getEvents();
+        setEvents(fetchedEvents);
+    }
+    loadEvents();
+  }, []);
+
   const filteredEvents = useMemo(() => {
-    return initialEvents.filter(e => e.grade === selectedGrade && e.subject === selectedSubject);
-  }, [selectedGrade, selectedSubject]);
+    return events.filter(e => e.grade === selectedGrade && e.subject === selectedSubject);
+  }, [events, selectedGrade, selectedSubject]);
+
+  const handleEventsChange = (updatedEvents: CalendarEvent[]) => {
+      setEvents(updatedEvents);
+  }
 
   return (
     <main className="container mx-auto p-4 animate-fade-in-slow">
@@ -42,7 +55,7 @@ export default function PlannerPage() {
         </header>
         <div className="grid gap-6 md:grid-cols-12">
           <div className="md:col-span-12 lg:col-span-8 xl:col-span-9">
-            <DailyPlan date={date} />
+            <DailyPlan date={date} onEventsChange={handleEventsChange} />
           </div>
           <div className="md:col-span-12 lg:col-span-4 xl:col-span-3">
             <Card className="sticky top-20 shadow-sm p-0 animate-slide-in-from-left">

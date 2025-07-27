@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
@@ -17,7 +18,7 @@ const lastSelectedSubjectKeyPrefix = 'last_selected_subject_v2_';
 const SubjectContext = createContext<SubjectContextType | undefined>(undefined);
 
 export const SubjectProvider = ({ children }: { children: ReactNode }) => {
-  const { selectedGrade, setSelectedGrade, workspaces, setWorkspaces } = useGrade();
+  const { selectedGrade, setSelectedGrade, workspaces, setWorkspaces, isLoading } = useGrade();
   const [selectedSubject, setSelectedSubjectState] = useState<string>('');
 
   const subjectsByGrade = workspaces.reduce((acc, ws) => {
@@ -26,7 +27,7 @@ export const SubjectProvider = ({ children }: { children: ReactNode }) => {
   }, {} as { [key: string]: string[] });
 
   useEffect(() => {
-    if (!selectedGrade || !workspaces.length) return;
+    if (isLoading || !selectedGrade || !workspaces.length) return;
 
     try {
         const lastSubjectForGrade = localStorage.getItem(`${lastSelectedSubjectKeyPrefix}${selectedGrade}`);
@@ -44,7 +45,7 @@ export const SubjectProvider = ({ children }: { children: ReactNode }) => {
         const gradeSubjects = subjectsByGrade[selectedGrade] || [];
         setSelectedSubjectState(gradeSubjects[0] || '');
     }
-  }, [selectedGrade, workspaces]);
+  }, [selectedGrade, workspaces, isLoading]);
 
 
   const addSubject = (grade: string, subject: string) => {
