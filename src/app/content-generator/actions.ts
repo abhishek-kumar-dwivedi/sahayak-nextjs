@@ -1,9 +1,12 @@
 
 'use server';
 
-import { generateContent, ContentGenerationInput } from '@/ai/flows/content-generation';
 import { z } from 'zod';
-import { addContentHistory, deleteContentHistory, getContentHistory } from '@/services/firestore';
+import { addContentHistory, deleteContentHistory } from '@/services/firestore';
+import { useAuth } from '@/context/auth-context'; // Cannot be used in server component, but this is a server action
+import { cookies } from 'next/headers';
+import { generateContent } from '@/ai/flows/content-generation';
+
 
 const ContentFormSchema = z.object({
   topic: z.string().min(3, { message: 'Topic must be at least 3 characters.' }),
@@ -39,12 +42,40 @@ export async function generateContentAction(prevState: any, formData: FormData) 
   }
 
   try {
-    const result = await generateContent(validatedFields.data as ContentGenerationInput);
+    const { topic, gradeLevel, subject, contentType, learningObjective } = validatedFields.data;
     
+    // This is a server action, so we can't use hooks.
+    // We'll assume a teacher name for now. A real implementation would get this from the session.
+    const teacher = "Sai Pawan"; 
+
+    // Construct URL with query parameters
+    const queryParams = new URLSearchParams({
+        topic,
+        teacher,
+        grade: gradeLevel,
+        subject,
+    });
+    
+    const apiUrl = `https://8080-firebase-sahayakbackend-1753513521462.cluster-cd3bsnf6r5bemwki2bxljme5as.cloudworkstations.dev/generate_content/generate-content/?${queryParams}`;
+
+    // The API expects multipart/form-data, so we send a FormData object, even if empty.
+    const apiResponse = await fetch(apiUrl, {
+        method: 'POST',
+        body: new FormData(),
+    });
+
+    if (!apiResponse.ok) {
+        const errorText = await apiResponse.text();
+        console.error("API Error:", errorText);
+        throw new Error(`API request failed with status ${apiResponse.status}: ${errorText}`);
+    }
+
+    const result = await apiResponse.json();
+
     const newContent = {
         createdAt: new Date().toISOString(),
         ...validatedFields.data,
-        content: result.content
+        content: result.response // Assuming the API returns a 'response' field with the content
     };
     
     const newId = await addContentHistory(newContent);
@@ -56,9 +87,10 @@ export async function generateContentAction(prevState: any, formData: FormData) 
     };
   } catch (error) {
     console.error(error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
     return {
       message: 'Failed to generate content.',
-      error: 'An unexpected error occurred. Please try again.',
+      error: errorMessage,
       data: null,
     };
   }

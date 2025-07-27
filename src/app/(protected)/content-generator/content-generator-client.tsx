@@ -235,7 +235,13 @@ export function ContentGeneratorClient({ initialHistory, topicFromQuery }: { ini
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="flex-grow overflow-y-auto p-4">
-                    {!selectedContent ? (
+                    {useFormStatus().pending && !selectedContent ? (
+                       <div className="space-y-2">
+                            <Skeleton className="h-4 w-3/4" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                        </div>
+                    ) : !selectedContent ? (
                       <div className="text-muted-foreground flex flex-col items-center justify-center text-center h-full p-8">
                         <PenSquare className="w-10 h-10 text-muted-foreground/50 mb-4" />
                         <p className="font-semibold text-sm">{t('contentFormPrompt')}</p>
